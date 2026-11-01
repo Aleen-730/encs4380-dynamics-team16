@@ -1,45 +1,201 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hw1</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body>
 
-<h2>first order step response</h2>
-<p>y(t)=Ak(1-exp(-t/tau))</p>
+<p>Choose Input Type:</p>
+<select id="inputType">
+  <option value="step">Step</option>
+  <option value="ramp">Ramp</option>
+</select>
+
 
 <p>tau=<span id="tauval">1</span></p>
 <input type="range" id="tau" min="0.1" max="5" step="0.1" value="1">
 
+<p>K = <span id="kval">1</span></p>
+<input type="range" id="k" min="0.5" max="5" step="0.5" value="1">
+
+<div id="stepContent">
+<h2 id="stepTitle">First order step response</h2>
+<p>y(t)=Ak(1-exp(-t/tau))</p>
+
 <div id="graph"></div>
+
 <p id="test"></p>
+<h3>Predict & Check</h3>
+<p>Guess the output at t = tau:</p>
+<input type="number" id="userAnswer" step="any">
+<button onclick="checkAnswer()">Check Answer</button>
+<p id="answerResult"></p>
+<h2>Log Error-Fraction Plot</h2>
+<div id="logGraph"></div>
+<p id="slopeInfo"></p>
+</div>
+
+<div id="rampContent">
+<h2 id="rampTitle">First order ramp response</h2>
+<div id="rampGraph"></div>
+<p id="rampInfo"></p>
+<h3>Predict & Check</h3>
+<p>Guess the steady-state error:</p>
+<input type="number" id="userRampAnswer" step="any">
+<button onclick="checkRampAnswer()">Check Answer</button>
+<p id="rampResult"></p>
+</div>
 
 <script>
 var A=1
-var k=1
 
 function update(){
   var tau=Number(document.getElementById("tau").value)
+  var k= Number(document.getElementById("k").value)
+  var inputType=document.getElementById("inputType").value
+
   document.getElementById("tauval").innerHTML=tau
+  document.getElementById("kval").innerHTML=k
+  document.getElementById("answerResult").innerHTML=""
+  document.getElementById("test").style.display="none"
+  document.getElementById("rampResult").innerHTML=""
+
 
   var t=[]
   var y=[]
+  var rampY=[]
+  var idealRamp=[]
+  var logError = []
+
+  var rampLag=tau
+  var steadyError=A*k*tau
+  document.getElementById("rampInfo").innerHTML= `
+  Ramp Lag: ${rampLag.toFixed(2)} seconds
+  <br>
+  <span id="rampError">Steady-State Error: ${steadyError.toFixed(2)}</span>
+`
+document.getElementById("rampError").style.display="none"
+
   for(var i=0;i<=250;i++){
-    t.push(i*0.1)
-    y.push(A*k*(1-Math.exp(-(i*0.1)/tau)))
+    var time =i*0.1
+    t.push(time)
+    y.push(A*k*(1-Math.exp(-(time)/tau)))
+    rampY.push(A*k*time-A*k*tau+A*k*tau*Math.exp(-time/tau))
+    idealRamp.push(A*k*time)
+    logError.push(Math.exp(-time/tau))
+}
+  
+  var yTau = A*k*(1-Math.exp(-1))
+  var y3Tau = A*k*(1-Math.exp(-3))
+  Plotly.newPlot("graph", [
+  {x:t, y:y, name:"Sensor Output"},
+  {x:[0,25], y:[A*k,A*k], name:"Final Output", line:{dash:"dash"}},
+  {x:[tau], y:[yTau], name:"63.2% at tau", mode:"markers"},
+  {x:[3*tau], y:[y3Tau], name:"95% at 3tau", mode:"markers"}
+  ], {
+  title:"First-Order Step Response",
+  xaxis:{title:"Time (s)"},
+  yaxis:{title:"Sensor Output"}
+}, {responsive:true})
+
+Plotly.newPlot("rampGraph",[
+  {x:t, y:rampY, name:"Ramp Sensor Output"},
+  {x:t, y:idealRamp, name:"Ideal Ramp", line:{dash:"dash"}}
+],{
+  title:"First-Order Ramp Response",
+  xaxis:{title:"Time (s)"},
+  yaxis:{title:"Sensor Output"}
+}, {responsive:true})
+
+
+Plotly.newPlot("logGraph",[
+  {x:t, y:logError,name:"Log error fraction"}
+],{
+  title:"Log Error-Fraction Plot",
+  xaxis:{title:"Time (s)"},
+  yaxis:{title:"Error Fraction",type:"log"},
+  showlegend:true
+}, {responsive:true})
+
+
+var slope = -1/tau
+document.getElementById("slopeInfo").innerHTML =
+  `Slope = ${slope.toFixed(2)}`
+
+  if(inputType==="step"){
+  document.getElementById("stepContent").style.display="block"
+  document.getElementById("rampContent").style.display="none"
+}else{
+  document.getElementById("stepContent").style.display="none"
+  document.getElementById("rampContent").style.display="block"
+}
+Plotly.Plots.resize("rampGraph")
+Plotly.Plots.resize("graph")
+Plotly.Plots.resize("logGraph")
+
+
+var expectedAtTau=0.632*A*k
+var expectedAt3Tau=0.95*A*k
+var actualAtTau=yTau
+var actualAt3Tau=y3Tau
+var test1=Math.abs(expectedAtTau-actualAtTau)<0.01
+var test2=Math.abs(expectedAt3Tau-actualAt3Tau)<0.01
+
+document.getElementById("test").innerHTML=`
+At tau:<br>
+Expected=${expectedAtTau.toFixed(3)}<br>
+Your Value=${actualAtTau.toFixed(3)}<br>
+<span style="color:${test1?'green':'red'}">${test1?'PASS':'FAIL'}</span>
+<br><br>
+At 3tau:
+Expected=${expectedAt3Tau.toFixed(3)}<br>
+Your Value=${actualAt3Tau.toFixed(3)}<br>
+<span style="color:${test2?'green':'red'}">${test2?'PASS':'FAIL'}</span>`}
+
+function checkAnswer() {
+if(document.getElementById("userAnswer").value===""){
+  document.getElementById("answerResult").innerHTML="Please enter a number"
+  return
+}
+  var userAnswer = Number(document.getElementById("userAnswer").value)
+  var k = Number(document.getElementById("k").value)
+  var correctAnswer = A * k * (1 - Math.exp(-1))
+
+  var difference = Math.abs(userAnswer - correctAnswer)
+  document.getElementById("test").style.display="block"
+  if (difference <= 0.05) {
+    document.getElementById("answerResult").innerHTML = "Correct!"
+  } else {
+    document.getElementById("answerResult").innerHTML = "Wrong! Correct answer: " + correctAnswer.toFixed(3)
   }
-
-  Plotly.newPlot("graph",[{x:t,y:y}])
-
-  var p=(1-Math.exp(-tau/tau))*100
-  var res="fail"
-  if(Math.abs(p-63.2)<0.1) res="pass"
-  document.getElementById("test").innerHTML="y(tau)="+p.toFixed(1)+"% should be 63.2% "+res
 }
 
+function checkRampAnswer(){
+  var userAnswer = document.getElementById("userRampAnswer").value
+  if(userAnswer===""){
+    document.getElementById("rampResult").innerHTML="Please enter a number"
+    return
+  }
+  var tau=Number(document.getElementById("tau").value)
+  var k=Number(document.getElementById("k").value)
+
+  var correctAnswer=A*k*tau
+  document.getElementById("rampError").style.display="block"
+  if(Math.abs(Number(userAnswer)-correctAnswer)<=0.05){
+    document.getElementById("rampResult").innerHTML="Correct!"
+  }else{
+    document.getElementById("rampResult").innerHTML=
+      "Wrong! Correct answer: "+correctAnswer.toFixed(2)
+  }
+}
+
+
+
 document.getElementById("tau").oninput=update
+document.getElementById("k").oninput = update
+document.getElementById("inputType").onchange=update
 update()
 </script>
 
