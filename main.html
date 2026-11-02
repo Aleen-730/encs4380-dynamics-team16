@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Dynamic Characteristics Toolkit</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #FFF0F5;
+            color: #49303C;
+        }
+
+        header {
+            background: linear-gradient(135deg, #9F285F, #C4457D);
+            color: white;
+            text-align: center;
+            padding: 55px 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 34px;
+        }
+
+        header p {
+            color: #FADADD;
+            margin-top: 12px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 45px auto;
+            padding: 0 20px;
+        }
+
+        .container h2 {
+            text-align: center;
+            color: #A52D65;
+            margin-bottom: 35px;
+        }
+
+        .modules {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            border: 1px solid #F5C5D8;
+            box-shadow: 0 5px 15px rgba(184, 50, 112, 0.08);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(184, 50, 112, 0.16);
+        }
+
+        .card h3 {
+            color: #B83270;
+            margin-top: 0;
+        }
+
+        .card p {
+            color: #806575;
+            line-height: 1.7;
+        }
+
+        .card a {
+            display: inline-block;
+            margin-top: 12px;
+            background: #B83270;
+            color: white;
+            text-decoration: none;
+            padding: 11px 20px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .card a:hover {
+            background: #8F2457;
+        }
+
+        footer {
+            background: #FADADD;
+            text-align: center;
+            padding: 25px;
+            color: #96335F;
+            margin-top: 50px;
+        }
+
+        @media (max-width: 650px) {
+
+            .modules {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 26px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <header>
+
+        <h1>Dynamic Characteristics Toolkit</h1>
+
+        <p>
+            An Interactive Learning Platform for Sensor Dynamic Characteristics
+        </p>
+
+        <p>ENCS4380 - Interfacing Techniques</p>
+
+        <p>Birzeit University</p>
+
+    </header>
+
+
+    <div class="container">
+
+        <h2> Modules</h2>
+
+        <div class="modules">
+
+            <div class="card">
+
+                <h3>Module 1: First-Order Time Response</h3>
+
+                
+                <p>
+                    Explore how sensors respond to step and ramp inputs
+                    and understand the effect of the time constant.
+                </p>
+
+                <a href="module1.html">Open Module</a>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Module 2: Frequency Response</h3>
+
+                
+                <p>
+                    Explore amplitude ratio, phase lag,
+                    and the frequency response of first-order sensors.
+                </p>
+
+                <a href="module2.html">Open Module</a>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Module 3: Second-Order Response</h3>
+                
+
+                <p>
+                    Explore damping ratio, natural frequency,
+                    step response, and state-space modeling.
+                </p>
+
+                <a href="module3.html">Open Module</a>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Module 4: Guess the Sensor</h3>
+                
+
+                <p>
+                    Test your understanding by estimating
+                    the hidden parameters of an unknown sensor.
+                </p>
+
+                <a href="module4.html">Open Module</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <footer>
+        
+        1231626 1231411 1230042 1231286
+        
+        ENCS4380 - Interfacing Techniques
+        <br>
+        Birzeit University - 2026
+
+    </footer>
+
+</body>
+
+</html>
