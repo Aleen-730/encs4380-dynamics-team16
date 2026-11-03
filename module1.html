@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 1 - First-Order Time Response</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  body{margin:0;background:#eef1f6;font-family:Georgia,"Times New Roman",serif;color:#1d2330}
+  header{background:#183a73;color:#fff;text-align:center;padding:14px;font-size:24px;font-weight:bold}
+  .page{display:grid;grid-template-columns:240px 1fr;gap:14px;padding:14px;max-width:1300px;margin:auto}
+  .side{display:flex;flex-direction:column;gap:14px}
+  .main{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .card{background:#fff;border:1px solid #d5dbe6;border-radius:8px;overflow:hidden}
+  .card h3{margin:0;background:#183a73;color:#fff;padding:9px 12px;font-size:17px}
+  .card h4{margin:0;background:#c9d9ef;padding:9px;text-align:center;font-size:17px}
+  .body{padding:12px}
+  .plots{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .plot{height:280px}
+  .bottom{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  input[type=range]{width:100%}
+  .range{display:flex;justify-content:space-between;font-size:13px;color:#555}
+  .model{background:#eef1f6;border-radius:6px;padding:10px;text-align:center;font-size:20px}
+  .frac{display:inline-block;vertical-align:middle;text-align:center}
+  .frac span{display:block;padding:0 4px}
+  .frac span:first-child{border-bottom:1px solid #000}
+  .eq li{margin-bottom:8px}
+  .eq div{margin:3px 0 0 4px}
+  .q{display:flex;align-items:center;gap:8px;margin:10px 0}
+  .q label{flex:1}
+  .q input{width:80px;padding:5px}
+  button{display:block;margin:14px auto 4px;background:#183a73;color:#fff;border:0;border-radius:6px;padding:10px 26px;font-size:16px;cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{background:#dfe7f3}
+  th,td{border:1px solid #d5dbe6;padding:7px;text-align:center}
+  .pass{color:green;font-weight:bold}
+  .fail{color:#c00;font-weight:bold}
+  @media (max-width:900px){
+    .page,.bottom,.plots{grid-template-columns:1fr}
+    header{font-size:19px}
+  }
+</style>
+</head>
+<body>
+
+<header>Module 1 – First-Order System: Time Response Analysis</header>
+
+<div class="page">
+
+
+<div class="side">
+  <div class="card"><h3>System Parameters</h3><div class="body">
+    <p><b>Gain (K):</b> <span id="kval">1</span></p>
+    <input type="range" id="k" min="0.1" max="5" step="0.1" value="1">
+    <div class="range"><span>0.1</span><span>5.0</span></div>
+    <p><b>Time Constant (τ):</b> <span id="tauval">1</span> s</p>
+    <input type="range" id="tau" min="0.1" max="5" step="0.1" value="1">
+    <div class="range"><span>0.1</span><span>5.0</span></div>
+    <p style="font-size:13px;color:#555">Step / ramp amplitude A = 1</p>
+  </div></div>
+
+  <div class="card"><h3>System Model</h3><div class="body">
+    <div class="model">τẏ + y = Kx</div><br>
+    <div class="model">G(s) = <span class="frac"><span>K</span><span>τs + 1</span></span></div>
+  </div></div>
+
+  <div class="card"><h3>Key Equations</h3><div class="body">
+    <ul class="eq" style="padding-left:16px;margin:0">
+      <li><b>Step response:</b><div>y(t) = AK(1 − e<sup>−t/τ</sup>)</div></li>
+      <li><b>Ramp response:</b><div>y(t) = AKt − AKτ + AKτe<sup>−t/τ</sup></div></li>
+      <li><b>Ramp lag:</b><div>= τ</div></li>
+      <li><b>Steady-state error (ramp):</b><div>e<sub>ss</sub> = x − y/K = Aτ</div></li>
+      <li><b>Error fraction (step):</b><div>e(t) = (AK − y)/AK = e<sup>−t/τ</sup></div></li>
+      <li><b>Log-plot slope:</b><div>ln e(t) = −t/τ &nbsp;→&nbsp; slope = −1/τ</div></li>
+    </ul>
+  </div></div>
+</div>
+
+<div class="main">
+  <div class="plots">
+    <div class="card"><h4>Step Response</h4><div id="graph" class="plot"></div></div>
+    <div class="card"><h4>Ramp Response</h4><div id="rampGraph" class="plot"></div></div>
+    <div class="card"><h4>Log Error-Fraction Plot</h4><div id="logGraph" class="plot"></div></div>
+  </div>
+
+  <div class="bottom">
+    <div class="card"><h3>Predict &amp; Check</h3><div class="body">
+      <p>Predict the following values for the current K and τ:</p>
+      <div class="q"><label>1. <b>Step:</b> time to reach 63.2% of final value (t<sub>63</sub>)</label><input type="number" id="p1" step="any"> s</div>
+      <div class="q"><label>2. <b>Step:</b> time to reach 95% of final value (t<sub>95</sub>)</label><input type="number" id="p2" step="any"> s</div>
+      <div class="q"><label>3. <b>Ramp:</b> ramp lag</label><input type="number" id="p3" step="any"> s</div>
+      <div class="q"><label>4. <b>Ramp:</b> steady-state error (e<sub>ss</sub>)</label><input type="number" id="p4" step="any">&nbsp;&nbsp;</div>
+      <div class="q"><label>5. <b>Log plot:</b> slope of ln(error fraction)</label><input type="number" id="p5" step="any">1/s</div>
+      <button onclick="checkAnswer()">Check Answer</button>
+      <p id="answerResult" style="text-align:center"></p>
+    </div></div>
+
+    <div class="card"><h3>Validation (Calculated vs. Expected)</h3><div class="body">
+      <table>
+        <tr><th>Quantity</th><th>Expected</th><th>Calculated (from curve)</th><th>Result</th></tr>
+        <tbody id="test"></tbody>
+      </table>
+      <p style="font-size:14px;color:#c00;font-weight:bold">Enter your answers and press Check Answer to see the calculations.</p>
+    </div></div>
+  </div>
+
+  <div class="card"><h3>Notes – how the values are calculated</h3><div class="body">
+    <ul style="margin:0;padding-left:18px;line-height:1.6">
+      <li><b>y(τ), y(3τ):</b> read from the step curve at t = τ and t = 3τ.</li>
+      <li><b>t<sub>63</sub>, t<sub>95</sub>:</b> first time the step curve reaches 63.2% and 95% of AK.</li>
+      <li><b>Steady-state error:</b> x − y/K at the end of the ramp (t = 25 s).</li>
+      <li><b>Ramp lag:</b> steady-state error divided by the ramp slope A.</li>
+      <li><b>Log slope:</b> [ln e(3τ) − ln e(τ)] / (2τ), where e = (AK − y)/AK.</li>
+      <li><b>PASS</b> if the curve value is within 2% of the expected value.</li>
+    </ul>
+  </div></div>
+</div>
+
+</div>
+
+<script>
+var A=1
+var rows=[]   
+
+function update(){
+  var tau=Number(document.getElementById("tau").value)
+  var k=Number(document.getElementById("k").value)
+
+  document.getElementById("tauval").innerHTML=tau
+  document.getElementById("kval").innerHTML=k
+  document.getElementById("answerResult").innerHTML=""
+
+  var t=[]
+  var y=[]
+  var rampIn=[]     // ramp input x(t) = At
+  var rampOut=[]    
+  var logT=[]
+  var logError=[]
+
+  for(var i=0;i<=2500;i++){
+    var time=i*0.01
+    t.push(time)
+    y.push(A*k*(1-Math.exp(-time/tau)))
+    var rampY=A*k*time-A*k*tau+A*k*tau*Math.exp(-time/tau)
+    rampIn.push(A*time)
+    rampOut.push(rampY/k)
+    var err=(A*k-y[i])/(A*k)        
+    if(err>1e-3){ logT.push(time); logError.push(err) }
+  }
+
+  var yTau=A*k*(1-Math.exp(-1))
+  var y3Tau=A*k*(1-Math.exp(-3))
+  var layout={margin:{l:45,r:10,t:10,b:40},xaxis:{title:"Time (s)",range:[0,25]},
+              legend:{orientation:"h",y:-0.3}}
+
+  Plotly.newPlot("graph",[
+    {x:t,y:y,name:"Sensor output"},
+    {x:[0,25],y:[A*k,A*k],name:"Final value",line:{dash:"dash"}},
+    {x:[tau],y:[yTau],name:"63.2% at τ",mode:"markers"},
+    {x:[3*tau],y:[y3Tau],name:"95% at 3τ",mode:"markers"}
+  ],Object.assign({},layout,{yaxis:{title:"y(t)"}}),{responsive:true,displayModeBar:false})
+
+  var t0=15, top=A*t0, bottom=A*(t0-tau)
+  Plotly.newPlot("rampGraph",[
+    {x:t,y:rampIn,name:"Input x(t) = At",line:{dash:"dash"}},
+    {x:t,y:rampOut,name:"Output y(t)/K"}
+  ],Object.assign({},layout,{yaxis:{title:"x(t) and y(t)/K"},
+    shapes:[
+      {type:"line",x0:t0,y0:bottom,x1:t0,y1:top,line:{color:"#c00",width:3}},
+      {type:"line",x0:t0-tau,y0:bottom,x1:t0,y1:bottom,line:{color:"#7a3db8",width:3}}
+    ],
+    annotations:[
+      {x:t0,y:top,xanchor:"left",yanchor:"bottom",text:"e<sub>ss</sub> = Aτ (vertical)",showarrow:false,font:{color:"#c00",size:12},bgcolor:"#fff"},
+      {x:t0,y:bottom,xanchor:"left",yanchor:"top",yshift:-4,text:"lag = τ (horizontal)",showarrow:false,font:{color:"#7a3db8",size:12},bgcolor:"#fff"}
+    ]}),{responsive:true,displayModeBar:false})
+
+  Plotly.newPlot("logGraph",[
+    {x:logT,y:logError,name:"Error fraction"},
+    {x:[tau],y:[Math.exp(-1)],mode:"markers+text",text:["0.368 at τ"],textposition:"top right",marker:{color:"#c00",size:8}}
+  ],Object.assign({},layout,{yaxis:{title:"Error fraction",type:"log"},showlegend:false}),
+    {responsive:true,displayModeBar:false})
+
+  // slope of ln(error),for t =τ and t = 3τ
+  var e1=errorAt(y,k,tau), e2=errorAt(y,k,3*tau)
+  var measuredSlope=(Math.log(e2)-Math.log(e1))/(2*tau)
+
+ 
+  var t63=firstTimeAbove(t,y,0.632*A*k)
+  var t95=firstTimeAbove(t,y,0.95*A*k)
+  var last=t.length-1
+  var ess=rampIn[last]-rampOut[last]      
+  var lag=ess/A      
+
+  rows=[
+    ["y(τ)",      0.632*A*k, y[Math.round(tau/0.01)]],
+    ["y(3τ)",     0.95*A*k,  y[Math.round(3*tau/0.01)]],
+    ["t<sub>63</sub> (s)", tau,      t63],
+    ["t<sub>95</sub> (s)", 3*tau,    t95],
+    ["Ramp lag (s)",       tau,      lag],
+    ["Steady-state error", A*tau,  ess],
+    ["Log-plot slope (1/s)", -1/tau, measuredSlope]
+  ]
+  showTable(false)
+}
+
+function errorAt(y,k,time){
+  return (A*k-y[Math.round(time/0.01)])/(A*k)
+}
+
+function firstTimeAbove(t,y,level){
+  for(var i=0;i<y.length;i++){ if(y[i]>=level) return t[i] }
+  return NaN
+}
+
+function showTable(show){
+  var html=""
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i]
+    var pass=Math.abs(r[2]-r[1])<=0.02*Math.abs(r[1])+0.01
+    html+=`<tr><td>${r[0]}</td>
+      <td>${show?r[1].toFixed(3):"–"}</td>
+      <td>${show?r[2].toFixed(3):"–"}</td>
+      <td class="${pass?'pass':'fail'}">${show?(pass?'PASS':'FAIL'):"–"}</td></tr>`
+  }
+  document.getElementById("test").innerHTML=html
+}
+
+function checkAnswer(){
+  var tau=Number(document.getElementById("tau").value)
+  var k=Number(document.getElementById("k").value)
+  var correct=[tau,3*tau,tau,A*tau,-1/tau]
+  var names=["t63","t95","Ramp lag","e_ss","Slope"]
+  var msg=""
+
+  for(var i=0;i<5;i++){
+    var box=document.getElementById("p"+(i+1)).value
+    if(box===""){
+      document.getElementById("answerResult").innerHTML="Please fill in all five answers"
+      return
+    }
+    var ok=Math.abs(Number(box)-correct[i])<=0.05*Math.abs(correct[i])
+    msg+=`${names[i]}: <span class="${ok?'pass':'fail'}">${ok?'Correct!':'Wrong, answer = '+correct[i].toFixed(2)}</span><br>`
+  }
+  document.getElementById("answerResult").innerHTML=msg
+  showTable(true)
+}
+
+document.getElementById("tau").oninput=update
+document.getElementById("k").oninput=update
+update()
+</script>
+
+</body>
+</html>
