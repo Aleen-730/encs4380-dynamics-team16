@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Module 4 - Guess the Sensor</title>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background: #eef1f6;
+            font-family: Georgia, "Times New Roman", serif;
+            color: #1d2330
+        }
+
+        header {
+            background: #183a73;
+            color: #fff;
+            text-align: center;
+            padding: 14px;
+            font-size: 24px;
+            font-weight: bold
+        }
+
+        .page {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 14px;
+            padding: 14px;
+            max-width: 1300px;
+            margin: auto
+        }
+
+        .side,
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-width: 0
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #d5dbe6;
+            border-radius: 8px;
+            overflow: hidden
+        }
+
+        .card h3 {
+            margin: 0;
+            background: #183a73;
+            color: #fff;
+            padding: 9px 12px;
+            font-size: 17px
+        }
+
+        .card h4 {
+            margin: 0;
+            background: #c9d9ef;
+            padding: 9px;
+            text-align: center;
+            font-size: 17px
+        }
+
+        .body {
+            padding: 12px
+        }
+
+        .plot {
+            height: 380px
+        }
+
+        .q {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0
+        }
+
+        .q label {
+            flex: 1
+        }
+
+        .q input {
+            width: 90px;
+            padding: 5px
+        }
+
+        button {
+            display: block;
+            margin: 10px auto 4px;
+            background: #183a73;
+            color: #fff;
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 22px;
+            font-size: 16px;
+            cursor: pointer
+        }
+
+        button.alt {
+            background: #5b6b8a
+        }
+
+        button:disabled {
+            background: #aab3c5;
+            cursor: not-allowed
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px
+        }
+
+        th {
+            background: #dfe7f3
+        }
+
+        th,
+        td {
+            border: 1px solid #d5dbe6;
+            padding: 7px;
+            text-align: center
+        }
+
+        .pass {
+            color: green;
+            font-weight: bold
+        }
+
+        .fail {
+            color: #c00;
+            font-weight: bold
+        }
+
+        .info {
+            background: #eef1f6;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 15px
+        }
+
+        .score {
+            font-size: 22px;
+            text-align: center;
+            margin: 6px 0
+        }
+
+        @media (max-width:900px) {
+            .page {
+                grid-template-columns: 1fr
+            }
+
+            header {
+                font-size: 19px
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>Module 4 – Guess the Sensor</header>
+
+    <div class="page">
+
+        <div class="side">
+            <div class="card">
+                <h3>Your Guess</h3>
+                <div class="body">
+                    <p id="stimulus" class="info"></p>
+                    <div class="q"><label id="l1"></label><input type="number" id="g1" step="any"></div>
+                    <div class="q"><label id="l2"></label><input type="number" id="g2" step="any"></div>
+                    <button id="checkBtn" onclick="checkGuess()">Check Guess</button>
+                    <button class="alt" id="hintBtn" onclick="showHint()">Show Hint</button>
+                    <button class="alt" onclick="newSensor()">New Sensor</button>
+                    <p id="msg" style="text-align:center;margin:8px 0 0"></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Session Score</h3>
+                <div class="body">
+                    <div class="score"><b id="total">0</b> points</div>
+                    <p style="text-align:center;margin:4px 0">Rounds: <span id="rounds">0</span> &nbsp;|&nbsp; Average:
+                        <span id="avg">–</span> / 100</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="card">
+                <h4 id="plotTitle">Measured response (with noise)</h4>
+                <div id="plot" class="plot"></div>
+            </div>
+
+            <div class="card">
+                <h3>Result</h3>
+                <div class="body">
+                    <table>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>True value</th>
+                            <th>Your guess</th>
+                            <th>Error</th>
+                            <th>Points</th>
+                        </tr>
+                        <tbody id="result">
+                            <tr>
+                                <td colspan="5">Make your guess to see the true values.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p id="roundScore" class="score"></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Methods you can use</h3>
+                <div class="body">
+                    <ul style="margin:0;padding-left:18px;line-height:1.6">
+                        <li><b>First order, step:</b> y(τ) = 0.632 K A, so find the time where the curve reaches 63.2%
+                            of the final value. Or use the log method: ln of the error fraction against t is a line with
+                            slope −1/τ.</li>
+                        <li><b>First order, sine:</b> amplitude ratio M = 1/√(1+(ωτ)²) and phase lag φ = tan⁻¹(ωτ). The
+                            output amplitude is K·M.</li>
+                        <li><b>Second order, step:</b> read the overshoot and the peak time. Then find ζ and ωn.</li>
+                        <li>Hover over the plot to read exact values. The step amplitude is A = 1.</li>
+                        <li><b>Scoring:</b> within 10% error is full marks for that parameter. The points then fall to 0
+                            at 50% error.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        var S = null, revealed = false, hintIndex = 0
+        var totalPts = 0, rounds = 0
+
+        function rand(a, b) { return a + Math.random() * (b - a) }
+        function gauss() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v) }
+
+        // ---------- closed-form responses ----------
+        function firstStep(K, tau, t) { return K * (1 - Math.exp(-t / tau)) }
+
+        function firstSine(K, tau, w, t) {
+            var d = 1 + w * w * tau * tau
+            return K / d * (Math.sin(w * t) - w * tau * Math.cos(w * t) + w * tau * Math.exp(-t / tau))
+        }
+
+        function secondStep(z, wn, t) {
+            if (z < 1) {
+                var wd = wn * Math.sqrt(1 - z * z)
+                return 1 - Math.exp(-z * wn * t) * (Math.cos(wd * t) + z / Math.sqrt(1 - z * z) * Math.sin(wd * t))
+            }
+            if (z === 1) return 1 - (1 + wn * t) * Math.exp(-wn * t)
+            var root = Math.sqrt(z * z - 1), r1 = -wn * (z - root), r2 = -wn * (z + root)
+            return 1 + (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r1 - r2)
+        }
+
+        function model(p, t) {
+            if (S.type === "first" && S.mode === "step") return firstStep(p[0], p[1], t)
+            if (S.type === "first") return firstSine(p[0], p[1], S.w, t)
+            return secondStep(p[0], p[1], t)
+        }
+
+        // ---------- new round ----------
+        function newSensor() {
+            revealed = false
+            document.getElementById("checkBtn").disabled = false
+            document.getElementById("msg").innerHTML = ""
+            document.getElementById("roundScore").innerHTML = ""
+            document.getElementById("g1").value = ""
+            document.getElementById("g2").value = ""
+            document.getElementById("result").innerHTML = '<tr><td colspan="5">Make your guess to see the true values.</td></tr>'
+            hintIndex = 0
+            document.getElementById("hintBtn").textContent = "Show Hint"
+
+            var r = Math.random()
+            if (r < 0.4) {
+                S = { type: "first", mode: "step", K: rand(0.5, 5), tau: rand(0.3, 3) }
+                S.tmax = 5 * S.tau; S.noise = 0.02 * S.K
+                S.names = ["K", "τ (s)"]; S.true = [S.K, S.tau]
+                S.text = "First-order sensor. Input: step of size A = 1 at t = 0. Estimate K and τ."
+            } else if (r < 0.7) {
+                S = { type: "first", mode: "sine", K: rand(0.5, 5), tau: rand(0.3, 3) }
+                S.w = Math.round(rand(0.4, 2.5) / S.tau * 100) / 100
+                S.tmax = Math.max(3 * 2 * Math.PI / S.w, 5 * S.tau); S.noise = 0.03 * S.K
+                S.names = ["K", "τ (s)"]; S.true = [S.K, S.tau]
+                S.text = "First-order sensor. Input: sin(ωt) with ω = " + S.w.toFixed(2) + " rad/s (" + (S.w / 2 / Math.PI).toFixed(3) + " Hz), amplitude 1. Estimate K and τ."
+            } else {
+                S = { type: "second", mode: "step", zeta: rand(0.15, 0.85), wn: rand(1, 8) }
+                S.tmax = Math.max(5 / (S.zeta * S.wn), 2 * Math.PI / (S.wn * Math.sqrt(1 - S.zeta * S.zeta)))
+                S.noise = 0.02
+                S.names = ["ζ", "ωn (rad/s)"]; S.true = [S.zeta, S.wn]
+                S.text = "Second-order sensor with unit gain. Input: step of size A = 1 at t = 0. Estimate ζ and ωn."
+            }
+            var n = 400
+            S.t = []; S.y = []
+            for (var i = 0; i <= n; i++) {
+                var t = S.tmax * i / n
+                S.t.push(t)
+                S.y.push(model(S.true, t) + S.noise * gauss())
+            }
+            document.getElementById("stimulus").innerHTML = S.text
+            document.getElementById("l1").innerHTML = "Your guess for <b>" + S.names[0] + "</b>"
+            document.getElementById("l2").innerHTML = "Your guess for <b>" + S.names[1] + "</b>"
+            drawPlot(null, null)
+        }
+
+        function drawPlot(guess, truth) {
+            var data = [{ x: S.t, y: S.y, mode: "markers", name: "Measured (noisy)", marker: { size: 4, color: "#7a8aa8" } }]
+            if (S.mode === "sine") {
+                data.push({ x: S.t, y: S.t.map(function (t) { return Math.sin(S.w * t) }), mode: "lines", name: "Input sin(ωt)", line: { dash: "dash", color: "#999" } })
+            }
+            if (truth) data.push({ x: S.t, y: truth, mode: "lines", name: "True curve", line: { color: "green", width: 3 } })
+            if (guess) data.push({ x: S.t, y: guess, mode: "lines", name: "Your guess", line: { color: "#c00", width: 2, dash: "dot" } })
+            var layout = {
+                margin: { l: 50, r: 10, t: 10, b: 50 }, xaxis: { title: "Time (s)" },
+                yaxis: { title: S.mode === "sine" ? "Input and output" : "Output y(t)" }, legend: { orientation: "h", y: -0.25 }
+            }
+            Plotly.newPlot("plot", data, layout, { responsive: true, displayModeBar: false })
+        }
+
+        // ---------- hints ----------
+        function showHint() {
+            var hints
+            if (S.type === "first" && S.mode === "step") hints = [
+                "The final value of the step response is K·A, and here A = 1.",
+                "At t = τ the output is at 63.2% of the final value."]
+            else if (S.type === "first") hints = [
+                "The phase lag is tan⁻¹(ωτ). Compare the peaks of input and output to find the delay.",
+                "The output amplitude is K/√(1+(ωτ)²). Find τ first, then K."]
+            else hints = [
+                "Overshoot depends only on ζ.",
+                "Peak time is π/(ωn√(1−ζ²)). Find ζ first, then ωn."]
+            var h = hints[hintIndex % hints.length]
+            hintIndex++
+            document.getElementById("msg").innerHTML = "<i>Hint: " + h + "</i>"
+            document.getElementById("hintBtn").textContent = "Next Hint"
+        }
+
+        // ---------- check and reveal ----------
+        function pointsFor(err) {
+            if (err <= 0.10) return 1
+            return Math.max(0, 1 - (err - 0.10) / 0.40)
+        }
+
+        function checkGuess() {
+            if (revealed) return
+            var a = document.getElementById("g1").value, b = document.getElementById("g2").value
+            if (a === "" || b === "") { document.getElementById("msg").innerHTML = "Please enter both guesses first."; return }
+            var g = [Number(a), Number(b)]
+            if (!(g[0] > 0) || !(g[1] > 0)) { document.getElementById("msg").innerHTML = "Both guesses must be positive numbers."; return }
+            revealed = true
+            document.getElementById("checkBtn").disabled = true
+            document.getElementById("msg").innerHTML = ""
+
+            var html = "", sum = 0
+            for (var i = 0; i < 2; i++) {
+                var err = Math.abs(g[i] - S.true[i]) / S.true[i]
+                var p = pointsFor(err)
+                sum += p
+                html += "<tr><td>" + S.names[i] + "</td><td>" + S.true[i].toFixed(3) + "</td><td>" + g[i].toFixed(3) +
+                    "</td><td class='" + (err <= 0.10 ? "pass" : "fail") + "'>" + (err * 100).toFixed(1) + "%</td><td>" + (p * 50).toFixed(0) + " / 50</td></tr>"
+            }
+            var score = Math.round(sum / 2 * 100)
+            document.getElementById("result").innerHTML = html
+            document.getElementById("roundScore").innerHTML = "Round score: <b>" + score + " / 100</b>" + (score === 100 ? " – full marks!" : "")
+
+            totalPts += score; rounds++
+            document.getElementById("total").textContent = totalPts
+            document.getElementById("rounds").textContent = rounds
+            document.getElementById("avg").textContent = (totalPts / rounds).toFixed(0)
+
+            var truth = S.t.map(function (t) { return model(S.true, t) })
+            var guess = S.t.map(function (t) { return model(g, t) })
+            drawPlot(guess, truth)
+        }
+
+        newSensor()
+    </script>
+
+</body>
+
+</html>
