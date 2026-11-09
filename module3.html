@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,98 +9,49 @@
 <style>
 * { box-sizing: border-box; }
 
-body {
-    margin: 0;
-    padding: 25px;
-    font-family: Arial, sans-serif;
-    background: #eef1f6;
-    color: #18304f;
-}
+body { margin: 0; padding: 25px; font-family: Arial, sans-serif; background: #eef1f6; color: #18304f; }
 
 header { text-align: center; margin-bottom: 25px; }
 header h1 { color: #183a73; margin-bottom: 8px; }
 header p { color: #64748b; }
+
 .container { max-width: 1200px; margin: auto; }
 
-.card {
-    background: white;
-    padding: 22px;
-    margin-bottom: 20px;
-    border-radius: 14px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
-}
+.card { background: white; padding: 22px; margin-bottom: 20px; border-radius: 14px; box-shadow: 0 3px 12px rgba(0,0,0,0.06); }
 
 h2 { color: #183a73; margin-top: 0; font-size: 21px; }
 
-.controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
-}
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
 
 .control label { display: block; font-weight: bold; margin-bottom: 10px; }
-input[type="range"] { width: 100%; accent-color: #d65b91; }
-.value { color: #c34e83; font-weight: bold; }
 
-.damping {
-    margin-top: 20px;
-    padding: 12px;
-    text-align: center;
-    background: #fceaf2;
-    color: #a52d66;
-    border-radius: 8px;
-    font-weight: bold;
-}
+input[type="range"] { width: 100%; accent-color: #2f6fb3; }
 
-.measurements {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-}
+.value { color: #245a91; font-weight: bold; }
 
-.metric {
-    background: #f8f4f8;
-    padding: 17px 10px;
-    border-radius: 10px;
-    text-align: center;
-    border-bottom: 3px solid #d65b91;
-}
+.damping { margin-top: 20px; padding: 12px; text-align: center; background: #e8f1fb; color: #245a91; border-radius: 8px; font-weight: bold; }
+
+.measurements { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+.metric { background: #f4f7fb; padding: 17px 10px; border-radius: 10px; text-align: center; border-bottom: 3px solid #2f6fb3; }
 
 .metric h3 { font-size: 14px; color: #64748b; margin: 0 0 10px; }
+
 .metric p { font-size: 22px; font-weight: bold; color: #183a73; margin: 0; }
+
 .note { color: #64748b; font-size: 13px; margin-top: 15px; }
 
-.equations {
-    background: #faf7fa;
-    padding: 18px;
-    border-radius: 10px;
-    line-height: 1.9;
-    overflow-wrap: anywhere;
-}
+.equations { background: #f5f8fc; padding: 18px; border-radius: 10px; line-height: 1.9; overflow-wrap: anywhere; }
 
-.equations b { color: #c34e83; }
+.equations b { color: #245a91; }
+
 .formula-section { margin-bottom: 17px; }
 .formula-section:last-child { margin-bottom: 0; }
 .formula-section small { color: #64748b; }
 
-#measurementNote {
-    color: #a52d66;
-    background: #fceaf2;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    margin-top: 15px;
-}
+#measurementNote { color: #245a91; background: #e8f1fb; padding: 12px; border-radius: 8px; font-size: 14px; margin-top: 15px; }
 
-.pole-values {
-    display: flex;
-    justify-content: center;
-    gap: 25px;
-    flex-wrap: wrap;
-    margin-top: 12px;
-    font-weight: bold;
-    color: #c34e83;
-}
+.pole-values { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-top: 12px; font-weight: bold; color: #245a91; }
 
 @media(max-width: 700px) {
     body { padding: 12px; }
@@ -113,272 +63,185 @@ input[type="range"] { width: 100%; accent-color: #d65b91; }
 
 <body>
 
-<header>
-    <h1>Module 3: Second-Order Systems</h1>
-    </header>
+<header><h1>Module 3: Second-Order Systems</h1></header>
 
 <div class="container">
 
-    <!-- System Parameters -->
-    <div class="card">
-        <h2>System Parameters</h2>
+<div class="card">
+<h2>System Parameters</h2>
 
-        <div class="controls">
+<div class="controls">
 
-            <div class="control">
-                <label>
-                    Damping Ratio (ζ):
-                    <span class="value" id="zValue">0.5</span>
-                </label>
+<div class="control">
+<label>Damping Ratio (ζ): <span class="value" id="zValue">0.5</span></label>
+<input type="range" id="zeta" min="0.2" max="2" step="0.1" value="0.5">
+</div>
 
-                <input
-                    type="range"
-                    id="zeta"
-                    min="0.2"
-                    max="2"
-                    step="0.1"
-                    value="0.5">
-            </div>
-
-            <div class="control">
-                <label>
-                    Natural Frequency (ωn):
-                    <span class="value" id="wValue">2</span>
-                    rad/s
-                </label>
-
-                <input
-                    type="range"
-                    id="wn"
-                    min="0.5"
-                    max="10"
-                    step="0.5"
-                    value="2">
-            </div>
-
-        </div>
-
-        <div class="damping" id="dampingType">
-            Underdamped
-        </div>
-    </div>
-
-
-    <!-- Step Response -->
-    <div class="card">
-        <h2>Step Response Comparison</h2>
-        <div id="responseChart" style="width:100%;height:400px;"></div>
-        <p class="note">
-            The graph shows the selected system response compared
-            with underdamped, critically damped, and overdamped examples.
-        </p>
-    </div>
-
-
-    <!-- Live Measurements -->
-    <div class="card">
-        <h2>Live Measurements</h2>
-
-        <div class="measurements">
-
-            <div class="metric">
-                <h3>Rise Time</h3>
-                <p id="rise">--</p>
-            </div>
-
-            <div class="metric">
-                <h3>Peak Time</h3>
-                <p id="peak">--</p>
-            </div>
-
-            <div class="metric">
-                <h3>Overshoot</h3>
-                <p id="over">--</p>
-            </div>
-
-            <div class="metric">
-                <h3>Settling Time</h3>
-                <p id="settle">--</p>
-            </div>
-
-        </div>
-
-        <p class="note">
-            Rise Time: 10%–90% of final value.
-            Settling Time: ±2% criterion.
-            Measurements are calculated from the response curve.
-        </p>
-    </div>
-
-
-    <!-- Live Measurement Formulas -->
-    <div class="card">
-        <h2>Live Measurement Formulas</h2>
-
-        <div class="equations">
-
-            <div class="formula-section">
-                <b>1. Rise Time (10%–90%)</b><br>
-                tr = t90% − t10%<br>
-                
-            </div>
-
-            <div class="formula-section">
-                <b>2. Theoretical Rise Time (Underdamped)</b><br>
-                tr = (π − φ) / ωd<br>
-                φ = cos⁻¹(ζ)<br>
-                ωd = ωn √(1 − ζ²)<br>
-                
-            </div>
-
-            <div class="formula-section">
-                <b>3. Peak Time</b><br>
-                tp = π / ωd<br>
-                
-            </div>
-
-            <div class="formula-section">
-                <b>4. Maximum Overshoot</b><br>
-                %OS = e<sup>−πζ / √(1−ζ²)</sup> × 100%<br>
-               
-            </div>
-
-            <div class="formula-section">
-                <b>5. Settling Time (2% Criterion)</b><br>
-                |y(t) − yfinal| ≤ 0.02 × yfinal<br>
-                Ts ≈ 4 / (ζωn)<br>
-                
-            </div>
-
-           
-
-        </div>
-
-        <p id="measurementNote"></p>
-    </div>
-
-
-    <!-- S Plane -->
-    <div class="card">
-        <h2>Poles in the S-Plane</h2>
-
-        <div id="poleChart" style="width:100%;height:350px;"></div>
-
-        <div class="pole-values">
-            <span id="pole1">s1 = --</span>
-            <span id="pole2">s2 = --</span>
-        </div>
-
-        <p class="note">
-            Poles in the left half-plane indicate a stable system.
-            Their positions determine the system's response.
-        </p>
-    </div>
-
-
-    <!-- Equations -->
-    <div class="card">
-        <h2>Equations Used</h2>
-
-        <div class="equations">
-
-            <b>1. Characteristic Equation</b><br>
-            s² + 2ζωn s + ωn² = 0
-
-            <br><br>
-
-            <b>2. Poles</b><br>
-            s1,2 = −ζωn ± ωn√(ζ² − 1)
-
-            <br><br>
-
-            <b>3. Damped Natural Frequency</b><br>
-            ωd = ωn√(1 − ζ²)
-
-            <br><br>
-
-            <b>4. Underdamped Response (ζ &lt; 1)</b><br>
-            y(t) = 1 − e<sup>−ζωn t</sup>
-            [cos(ωd t) + ζ/√(1 − ζ²) sin(ωd t)]
-
-            <br><br>
-
-            <b>5. Critically Damped Response (ζ = 1)</b><br>
-            y(t) = 1 − (1 + ωn t)e<sup>−ωn t</sup>
-
-            <br><br>
-
-            <b>6. Overdamped Response (ζ &gt; 1)</b><br>
-            q = √(ζ² − 1)<br>
-            r1 = −ωn(ζ − q)<br>
-            r2 = −ωn(ζ + q)<br>
-            y(t) = 1 + [r2e<sup>r1t</sup> − r1e<sup>r2t</sup>] / (r1 − r2)
-
-        </div>
-    </div>
+<div class="control">
+<label>Natural Frequency (ωn): <span class="value" id="wValue">2</span> rad/s</label>
+<input type="range" id="wn" min="0.5" max="10" step="0.5" value="2">
+</div>
 
 </div>
 
+<div class="damping" id="dampingType">Underdamped</div>
+</div>
+
+<div class="card">
+<h2>Step Response Comparison</h2>
+<div id="responseChart" style="width:100%;height:400px;"></div>
+<p class="note">The graph shows the selected system response compared with underdamped, critically damped, and overdamped examples.</p>
+</div>
+
+<div class="card">
+<h2>Live Measurements</h2>
+
+<div class="measurements">
+
+<div class="metric">
+<h3>Rise Time</h3>
+<p id="rise">--</p>
+</div>
+
+<div class="metric">
+<h3>Peak Time</h3>
+<p id="peak">--</p>
+</div>
+
+<div class="metric">
+<h3>Overshoot</h3>
+<p id="over">--</p>
+</div>
+
+<div class="metric">
+<h3>Settling Time</h3>
+<p id="settle">--</p>
+</div>
+
+</div>
+
+<p class="note">Rise Time: 10%–90% of final value. Settling Time: ±2% criterion. Measurements are calculated from the response curve.</p>
+</div>
+
+<div class="card">
+<h2>Live Measurement Formulas</h2>
+
+<div class="equations">
+
+<div class="formula-section">
+<b>1. Rise Time (10%–90%)</b><br>
+tr = t90% − t10%
+</div>
+
+<div class="formula-section">
+<b>2. Theoretical Rise Time (Underdamped)</b><br>
+tr = (π − φ) / ωd<br>
+φ = cos⁻¹(ζ)<br>
+ωd = ωn √(1 − ζ²)
+</div>
+
+<div class="formula-section">
+<b>3. Peak Time</b><br>
+tp = π / ωd
+</div>
+
+<div class="formula-section">
+<b>4. Maximum Overshoot</b><br>
+%OS = e<sup>−πζ / √(1−ζ²)</sup> × 100%
+</div>
+
+<div class="formula-section">
+<b>5. Settling Time (2% Criterion)</b><br>
+|y(t) − yfinal| ≤ 0.02 × yfinal
+</div>
+
+</div>
+
+<p id="measurementNote"></p>
+</div>
+
+<div class="card">
+<h2>Poles in the S-Plane</h2>
+
+<div id="poleChart" style="width:100%;height:350px;"></div>
+
+<div class="pole-values">
+<span id="pole1">s1 = --</span>
+<span id="pole2">s2 = --</span>
+</div>
+
+<p class="note">Poles in the left half-plane indicate a stable system. Their positions determine the system's response.</p>
+</div>
+
+<div class="card">
+<h2>Equations Used</h2>
+
+<div class="equations">
+
+<b>1. Characteristic Equation</b><br>
+s² + 2ζωn s + ωn² = 0
+
+<br><br>
+
+<b>2. Poles</b><br>
+s1,2 = −ζωn ± ωn√(ζ² − 1)
+
+<br><br>
+
+<b>3. Damped Natural Frequency</b><br>
+ωd = ωn√(1 − ζ²)
+
+<br><br>
+
+<b>4. Underdamped Response (ζ < 1)</b><br>
+y(t) = 1 − e<sup>−ζωn t</sup> [cos(ωd t) + ζ/√(1 − ζ²) sin(ωd t)]
+
+<br><br>
+
+<b>5. Critically Damped Response (ζ = 1)</b><br>
+y(t) = 1 − (1 + ωn t)e<sup>−ωn t</sup>
+
+<br><br>
+
+<b>6. Overdamped Response (ζ > 1)</b><br>
+q = √(ζ² − 1)<br>
+r1 = −ωn(ζ − q)<br>
+r2 = −ωn(ζ + q)<br>
+y(t) = 1 + [r2e<sup>r1t</sup> − r1e<sup>r2t</sup>] / (r1 − r2)
+
+</div>
+</div>
+
+</div>
 
 <script>
 
 const $ = id => document.getElementById(id);
 
-
-// Calculate the step response
 function response(t, z, w) {
-
     if (z < 1) {
-
-        // Underdamped
         let d = w * Math.sqrt(1 - z * z);
-
-        return 1 - Math.exp(-z * w * t) *
-        (
-            Math.cos(d * t) +
-            z / Math.sqrt(1 - z * z) * Math.sin(d * t)
-        );
-
+        return 1 - Math.exp(-z * w * t) * (Math.cos(d * t) + z / Math.sqrt(1 - z * z) * Math.sin(d * t));
     } else if (Math.abs(z - 1) < 0.000001) {
-
-        // Critically damped
         return 1 - (1 + w * t) * Math.exp(-w * t);
-
     } else {
-
-        // Overdamped
         let q = Math.sqrt(z * z - 1);
-
         let r1 = -w * (z - q);
         let r2 = -w * (z + q);
-
-        return 1 +
-        (r2 * Math.exp(r1 * t) -
-         r1 * Math.exp(r2 * t)) / (r1 - r2);
+        return 1 + (r2 * Math.exp(r1 * t) - r1 * Math.exp(r2 * t)) / (r1 - r2);
     }
 }
 
-
-// Find the time at which the curve reaches a target
 function crossing(t, y, target) {
-
     for (let i = 1; i < y.length; i++) {
-
         if (y[i - 1] <= target && y[i] >= target) {
-
-            let fraction =
-                (target - y[i - 1]) / (y[i] - y[i - 1]);
-
-            return t[i - 1] +
-                fraction * (t[i] - t[i - 1]);
+            let fraction = (target - y[i - 1]) / (y[i] - y[i - 1]);
+            return t[i - 1] + fraction * (t[i] - t[i - 1]);
         }
     }
-
     return null;
 }
 
-
-// Main update function
 function update() {
 
     let z = parseFloat($("zeta").value);
@@ -389,50 +252,35 @@ function update() {
 
     let type;
 
-    if (z < 1) {
-        type = "Underdamped";
-    } else if (Math.abs(z - 1) < 0.000001) {
-        type = "Critically Damped";
-    } else {
-        type = "Overdamped";
-    }
+    if (z < 1) type = "Underdamped";
+    else if (Math.abs(z - 1) < 0.000001) type = "Critically Damped";
+    else type = "Overdamped";
 
     $("dampingType").textContent = type;
 
-
-    // Generate response samples
     let n = 2000;
     let maxTime = Math.max(8, 10 / (z * w));
-
     let t = [];
     let y = [];
 
     for (let i = 0; i < n; i++) {
-
         let time = maxTime * i / (n - 1);
-
         t.push(time);
         y.push(response(time, z, w));
     }
 
-
-    // Reference responses
     let under = t.map(time => response(time, 0.5, w));
     let critical = t.map(time => response(time, 1, w));
     let over = t.map(time => response(time, 1.5, w));
 
-
-    // Response chart
     Plotly.react("responseChart", [
-
         {
             x: t,
             y: y,
             name: "Selected System",
             mode: "lines",
-            line: {color: "#d65b91", width: 3}
+            line: {color: "#2f6fb3", width: 3}
         },
-
         {
             x: t,
             y: under,
@@ -440,15 +288,13 @@ function update() {
             mode: "lines",
             line: {color: "#183a73", dash: "dash"}
         },
-
         {
             x: t,
             y: critical,
             name: "Critically Damped (ζ=1)",
             mode: "lines",
-            line: {color: "#e6a23c", dash: "dot"}
+            line: {color: "#5b8fc4", dash: "dot"}
         },
-
         {
             x: t,
             y: over,
@@ -456,165 +302,84 @@ function update() {
             mode: "lines",
             line: {color: "#36a18b", dash: "dash"}
         }
-
     ], {
-
         margin: {t: 20, r: 20, b: 50, l: 55},
         xaxis: {title: "Time (seconds)", zeroline: true},
         yaxis: {title: "Response", zeroline: true},
         legend: {orientation: "h", y: -0.25},
         paper_bgcolor: "white",
         plot_bgcolor: "white"
-
     }, {responsive: true});
 
-
-    // Live Measurements
-
-    // Rise Time: 10% to 90%
     let rise1 = crossing(t, y, 0.1);
     let rise2 = crossing(t, y, 0.9);
+    let rise = rise1 !== null && rise2 !== null ? rise2 - rise1 : null;
 
-    let rise = rise1 !== null && rise2 !== null
-        ? rise2 - rise1
-        : null;
-
-
-    // Maximum Peak and Overshoot
     let max = Math.max(...y);
     let idx = y.indexOf(max);
-
     let overshoot = Math.max(0, (max - 1) * 100);
+    let peak = overshoot > 0.01 ? t[idx] : null;
 
-    let peak = overshoot > 0.01
-        ? t[idx]
-        : null;
-
-
-    // Settling Time: 2% criterion
     let last = -1;
 
     for (let i = 0; i < y.length; i++) {
-
-        if (Math.abs(y[i] - 1) > 0.02) {
-            last = i;
-        }
+        if (Math.abs(y[i] - 1) > 0.02) last = i;
     }
 
-    let settling = last < 0
-        ? 0
-        : last < n - 1
-            ? t[last + 1]
-            : null;
+    let settling = last < 0 ? 0 : last < n - 1 ? t[last + 1] : null;
 
+    $("rise").textContent = rise === null ? "N/A" : rise.toFixed(3) + " s";
+    $("peak").textContent = peak === null ? "N/A" : peak.toFixed(3) + " s";
+    $("over").textContent = overshoot.toFixed(2) + "%";
+    $("settle").textContent = settling === null ? "N/A" : settling.toFixed(3) + " s";
 
-    // Display measurements
-    $("rise").textContent =
-        rise === null ? "N/A" : rise.toFixed(3) + " s";
-
-    $("peak").textContent =
-        peak === null ? "N/A" : peak.toFixed(3) + " s";
-
-    $("over").textContent =
-        overshoot.toFixed(2) + "%";
-
-    $("settle").textContent =
-        settling === null ? "N/A" : settling.toFixed(3) + " s";
-
-
-    // Measurement note
     if (z < 1) {
-
-        $("measurementNote").textContent =
-            "Underdamped: Overshoot and peak time are present. " +
-            "The theoretical formulas apply. Resonance formulas apply " +
-            "only when ζ < 0.707.";
-
+        $("measurementNote").textContent = "Underdamped: Overshoot and peak time are present. The theoretical formulas apply. Resonance formulas apply only when ζ < 0.707.";
     } else {
-
-        $("measurementNote").textContent =
-            type + ": No overshoot occurs, so Peak Time is not applicable. " +
-            "Underdamped-only formulas cannot be used.";
+        $("measurementNote").textContent = type + ": No overshoot occurs, so Peak Time is not applicable. Underdamped-only formulas cannot be used.";
     }
 
-
-    // Calculate poles
     let real = -z * w;
-    let imag = z < 1
-        ? w * Math.sqrt(1 - z * z)
-        : w * Math.sqrt(z * z - 1);
-
+    let imag = z < 1 ? w * Math.sqrt(1 - z * z) : w * Math.sqrt(z * z - 1);
     let s1, s2;
 
     if (z < 1) {
-
         s1 = {x: real, y: imag};
         s2 = {x: real, y: -imag};
-
     } else {
-
         let q = Math.sqrt(z * z - 1);
-
         s1 = {x: -w * (z - q), y: 0};
         s2 = {x: -w * (z + q), y: 0};
     }
 
+    $("pole1").textContent = "s1 = " + s1.x.toFixed(3) + (s1.y >= 0 ? " + j" : " - j") + Math.abs(s1.y).toFixed(3);
+    $("pole2").textContent = "s2 = " + s2.x.toFixed(3) + (s2.y >= 0 ? " + j" : " - j") + Math.abs(s2.y).toFixed(3);
 
-    // Display pole coordinates
-    $("pole1").textContent =
-        "s1 = " + s1.x.toFixed(3) +
-        (s1.y >= 0 ? " + j" : " - j") +
-        Math.abs(s1.y).toFixed(3);
-
-    $("pole2").textContent =
-        "s2 = " + s2.x.toFixed(3) +
-        (s2.y >= 0 ? " + j" : " - j") +
-        Math.abs(s2.y).toFixed(3);
-
-
-    // S-plane chart
     Plotly.react("poleChart", [
-
         {
             x: [s1.x, s2.x],
             y: [s1.y, s2.y],
             mode: "markers",
             name: "Poles",
             marker: {
-                color: "#d65b91",
+                color: "#2f6fb3",
                 size: 14,
                 symbol: "x",
                 line: {width: 3}
             }
         }
-
     ], {
-
         margin: {t: 20, r: 20, b: 50, l: 55},
-        xaxis: {
-            title: "Real Axis",
-            zeroline: true,
-            range: [-Math.max(12, w * 2), 2]
-        },
-        yaxis: {
-            title: "Imaginary Axis",
-            zeroline: true,
-            range: [-Math.max(12, w * 2), Math.max(12, w * 2)]
-        },
+        xaxis: {title: "Real Axis", zeroline: true, range: [-Math.max(12, w * 2), 2]},
+        yaxis: {title: "Imaginary Axis", zeroline: true, range: [-Math.max(12, w * 2), Math.max(12, w * 2)]},
         paper_bgcolor: "white",
         plot_bgcolor: "white"
-
     }, {responsive: true});
-
 }
 
-
-// Update when sliders move
 $("zeta").addEventListener("input", update);
 $("wn").addEventListener("input", update);
 
-
-// Initial display
 update();
 
 </script>
