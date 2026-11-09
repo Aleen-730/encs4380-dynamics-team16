@@ -9,61 +9,359 @@
     <title>Module 2 - Frequency Response</title>
 
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+    <style>
+
+        body {
+            margin: 0;
+            background: #eef1f6;
+            font-family: Georgia, "Times New Roman", serif;
+            color: #1d2330;
+        }
+
+        header {
+            background: #183a73;
+            color: #fff;
+            text-align: center;
+            padding: 14px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .page {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 14px;
+            padding: 14px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .side,
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #d5dbe6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .card h3 {
+            margin: 0;
+            background: #183a73;
+            color: #fff;
+            padding: 9px 12px;
+            font-size: 17px;
+        }
+
+        .card h4 {
+            margin: 0;
+            background: #c9d9ef;
+            padding: 9px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .body {
+            padding: 14px;
+        }
+
+        .parameter {
+            margin-bottom: 18px;
+        }
+
+        .parameter label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .parameter span {
+            color: #183a73;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #183a73;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 9px 0;
+            border-bottom: 1px solid #e1e5ed;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item span:last-child {
+            font-weight: bold;
+            color: #183a73;
+        }
+
+        .prediction-question {
+            margin: 12px 0 7px;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid #cbd3e1;
+            border-radius: 5px;
+            background: #fff;
+            font-size: 14px;
+        }
+
+        button {
+            display: block;
+            margin: 14px auto 4px;
+            background: #183a73;
+            color: #fff;
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 22px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #254e91;
+        }
+
+        .prediction-result {
+            background: #eef1f6;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-top: 12px;
+        }
+
+        .plot {
+            height: 380px;
+        }
+
+        @media (max-width: 900px) {
+
+            .page {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                font-size: 19px;
+            }
+
+            .plot {
+                height: 320px;
+            }
+
+        }
+
+    </style>
+
 </head>
 
 <body>
 
-    <h2>Module 2: First-Order Frequency Response</h2>
+    <header>Module 2 – First-Order Frequency Response</header>
 
-    <h3>Input Parameters</h3>
+    <div class="page">
 
-    <p>Time Constant (τ) = <span id="tauValue">0.5</span> s</p>
-    <input type="range" id="tau" min="0.01" max="1" step="0.01" value="0.2">
+        <!-- Side Column -->
 
-    <p>Input Frequency (f) = <span id="freqValue">1</span> Hz</p>
-    <input type="range" id="frequency" min="0.1" max="100" step="0.1" value="1">
+        <div class="side">
 
-    <p>Input Amplitude (A) = <span id="ampValue">1</span></p>
-    <input type="range" id="amplitude" min="0.5" max="5" step="0.5" value="1">
+            <!-- Input Parameters -->
 
-    <h3>Calculated Results</h3>
+            <div class="card">
 
-    <p>Amplitude Ratio (M): <span id="mValue">0</span></p>
+                <h3>Input Parameters</h3>
 
-    <p>Phase Lag: <span id="phaseValue">0</span> °</p>
-    <p>Output Amplitude: <span id="outputAmp">0</span></p>
-    <p>Dynamic Error: <span id="dynamicError">0</span> %</p>
-    <p>Cutoff Frequency: <span id="cutoffFreq">0</span> Hz</p>
-    <h3>Predict, then check</h3>
+                <div class="body">
 
-<p>1. What will happen to the output amplitude?</p>
+                    <div class="parameter">
 
-<select id="amplitudePrediction">
-    <option value="">Choose your prediction</option>
-    <option value="decrease">It will decrease</option>
-    <option value="same">It will stay almost the same</option>
-</select>
+                        <label>
+                            Time Constant (τ) =
+                            <span id="tauValue">0.5</span> s
+                        </label>
 
-<p>2. What will happen to the phase?</p>
+                        <input type="range" id="tau"
+                            min="0.01" max="1" step="0.01" value="0.2">
 
-<select id="phasePrediction">
-    <option value="">Choose your prediction</option>
-    <option value="small">Small phase lag</option>
-    <option value="large">Large phase lag</option>
-</select>
+                    </div>
 
-<button onclick="checkPrediction()">Check Prediction</button>
+                    <div class="parameter">
 
-<p id="predictionResult"></p>
+                        <label>
+                            Input Frequency (f) =
+                            <span id="freqValue">1</span> Hz
+                        </label>
 
-    <h3>Input and Output Signals</h3>
+                        <input type="range" id="frequency"
+                            min="0.1" max="100" step="0.1" value="1">
 
-    <div id="signalPlot"></div>
-    <h3>Bode Plot</h3>
-    <div id="bodePlot"></div>
-    <h3>Phase Response</h3>
-    <div id="phasePlot"></div> 
-    
+                    </div>
+
+                    <div class="parameter">
+
+                        <label>
+                            Input Amplitude (A) =
+                            <span id="ampValue">1</span>
+                        </label>
+
+                        <input type="range" id="amplitude"
+                            min="0.5" max="5" step="0.5" value="1">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Calculated Results -->
+
+            <div class="card">
+
+                <h3>Calculated Results</h3>
+
+                <div class="body">
+
+                    <div class="result-item">
+                        <span>Amplitude Ratio (M)</span>
+                        <span id="mValue">0</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span>Phase Lag</span>
+                        <span><span id="phaseValue">0</span> °</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span>Output Amplitude</span>
+                        <span id="outputAmp">0</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span>Dynamic Error</span>
+                        <span><span id="dynamicError">0</span> %</span>
+                    </div>
+
+                    <div class="result-item">
+                        <span>Cutoff Frequency</span>
+                        <span><span id="cutoffFreq">0</span> Hz</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Predict Then Check -->
+
+            <div class="card">
+
+                <h3>Predict, then check</h3>
+
+                <div class="body">
+
+                    <p class="prediction-question">
+                        1. What will happen to the output amplitude?
+                    </p>
+
+                    <select id="amplitudePrediction">
+
+                        <option value="">Choose your prediction</option>
+
+                        <option value="decrease">
+                            It will decrease
+                        </option>
+
+                        <option value="same">
+                            It will stay almost the same
+                        </option>
+
+                    </select>
+
+
+                    <p class="prediction-question">
+                        2. What will happen to the phase?
+                    </p>
+
+                    <select id="phasePrediction">
+
+                        <option value="">Choose your prediction</option>
+
+                        <option value="small">
+                            Small phase lag
+                        </option>
+
+                        <option value="large">
+                            Large phase lag
+                        </option>
+
+                    </select>
+
+                    <button onclick="checkPrediction()">
+                        Check Prediction
+                    </button>
+
+                    <p id="predictionResult" class="prediction-result"></p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Main Column -->
+
+        <div class="main">
+
+            <div class="card">
+
+                <h4>Input and Output Signals</h4>
+
+                <div id="signalPlot" class="plot"></div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Bode Plot – Magnitude Response</h3>
+
+                <div id="bodePlot" class="plot"></div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Phase Response</h3>
+
+                <div id="phasePlot" class="plot"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 
     <script>
 
@@ -83,27 +381,37 @@
             var dynamicError = (M - 1) * 100;
             var phase = -Math.atan(omega * tau);
             var phase_to_Degrees = phase * (180 / Math.PI);
-            var Amp_out = M * A ;
+            var Amp_out = M * A;
 
             var duration = 2 / f;
             var dt = duration / 500;
+
             var time = [];
-            var inputSignal = []; 
-            var outputSignal = [];  
+            var inputSignal = [];
+            var outputSignal = [];
+
             for (var t = 0; t <= duration; t += dt) {
-            time.push(t);
-            var x = A * Math.sin(2 * Math.PI * f * t);
-            inputSignal.push(x);
-            var y  = Amp_out * Math.sin(2 * Math.PI * f * t + phase);
-            outputSignal.push(y);
-        }
-            var phase_array=[];
-            var M_array=[];
+
+                time.push(t);
+
+                var x = A * Math.sin(2 * Math.PI * f * t);
+                inputSignal.push(x);
+
+                var y = Amp_out * Math.sin(2 * Math.PI * f * t + phase);
+                outputSignal.push(y);
+
+            }
+
+            var phase_array = [];
+            var M_array = [];
             var frequency_array = [];
+
             var df = 0.1;
+
             for (var freq = 0; freq <= 100; freq += df) {
+
                 frequency_array.push(freq);
- 
+
                 var omega_bode = 2 * Math.PI * freq;
 
                 var M_bode = 1 / Math.sqrt(1 + Math.pow(omega_bode * tau, 2));
@@ -111,31 +419,123 @@
 
                 var phase_bode = -Math.atan(omega_bode * tau);
                 phase_array.push(phase_bode * (180 / Math.PI));
-              }
+
+            }
 
 
-           
-            var trace1 = { x: time , y: inputSignal, mode: "lines",name: "Input Signal"};
-            var trace2 = { x: time  ,y: outputSignal, mode: "lines",name: "Output Signal"};
+            var trace1 = {
+                x: time,
+                y: inputSignal,
+                mode: "lines",
+                name: "Input Signal"
+            };
+
+            var trace2 = {
+                x: time,
+                y: outputSignal,
+                mode: "lines",
+                name: "Output Signal"
+            };
+
             var in_out_data = [trace1, trace2];
-            var layout = {title: "Input and Output Signals",xaxis: { title: "Time (s)" },yaxis: { title: "Amplitude" }};
-            Plotly.newPlot("signalPlot", in_out_data, layout);
 
-            var trace3 = { x: frequency_array , y: phase_array, mode: "lines",name: "Phase "};
-            var trace4 = { x: frequency_array  ,y: M_array, mode: "lines",name: "Magnitude Ratio"};
-           // var M_ph_data = [trace3, trace4];
-            var layout2 = {title: "Bode Plot",xaxis: { title: "Frequency (Hz)", type: "log" },yaxis: { title: "Magnitude " , range: [0,1]}
-                              ,shapes: [{ type: "line",x0: fc, x1: fc, y0: 0, y1: 1, line: {color: "red",dash: "dash",width: 2 }
-    }]};
-            Plotly.newPlot("bodePlot",[trace4], layout2);
-            var layout3 = {title: "Phase Response",xaxis: {
-                 title: "Frequency (Hz)", type: "log"},yaxis: {title: "Phase (Degrees)"},
-                 shapes: [{type: "line",xref: "x",yref: "y",x0: fc,x1: fc,y0: -90,y1: 0,line: {or: "red",
-                  dash: "dash",width: 2}}]};
+            var layout = {
+                title: "Input and Output Signals",
+                xaxis: { title: "Time (s)" },
+                yaxis: { title: "Amplitude" }
+            };
+
+            Plotly.newPlot("signalPlot", in_out_data, layout, {
+                responsive: true,
+                displayModeBar: false
+            });
 
 
+            var trace3 = {
+                x: frequency_array,
+                y: phase_array,
+                mode: "lines",
+                name: "Phase"
+            };
 
-            Plotly.newPlot("phasePlot", [trace3], layout3);
+            var trace4 = {
+                x: frequency_array,
+                y: M_array,
+                mode: "lines",
+                name: "Magnitude Ratio"
+            };
+
+
+            var layout2 = {
+
+                title: "Bode Plot",
+
+                xaxis: {
+                    title: "Frequency (Hz)",
+                    type: "log"
+                },
+
+                yaxis: {
+                    title: "Magnitude",
+                    range: [0, 1]
+                },
+
+                shapes: [{
+                    type: "line",
+                    x0: fc,
+                    x1: fc,
+                    y0: 0,
+                    y1: 1,
+                    line: {
+                        color: "red",
+                        dash: "dash",
+                        width: 2
+                    }
+                }]
+
+            };
+
+            Plotly.newPlot("bodePlot", [trace4], layout2, {
+                responsive: true,
+                displayModeBar: false
+            });
+
+
+            var layout3 = {
+
+                title: "Phase Response",
+
+                xaxis: {
+                    title: "Frequency (Hz)",
+                    type: "log"
+                },
+
+                yaxis: {
+                    title: "Phase (Degrees)"
+                },
+
+                shapes: [{
+                    type: "line",
+                    xref: "x",
+                    yref: "y",
+                    x0: fc,
+                    x1: fc,
+                    y0: -90,
+                    y1: 0,
+                    line: {
+                        color: "red",
+                        dash: "dash",
+                        width: 2
+                    }
+                }]
+
+            };
+
+
+            Plotly.newPlot("phasePlot", [trace3], layout3, {
+                responsive: true,
+                displayModeBar: false
+            });
 
 
             document.getElementById("mValue").innerHTML = M.toFixed(3);
@@ -144,66 +544,82 @@
             document.getElementById("dynamicError").innerHTML = dynamicError.toFixed(2);
             document.getElementById("cutoffFreq").innerHTML = fc.toFixed(3);
 
-
         }
+
+
         function checkPrediction() {
 
-    var tau = Number(document.getElementById("tau").value);
-    var f = Number(document.getElementById("frequency").value);
+            var tau = Number(document.getElementById("tau").value);
+            var f = Number(document.getElementById("frequency").value);
 
-    var omega = 2 * Math.PI * f;
+            var omega = 2 * Math.PI * f;
 
-    // Calculate actual results
-    var M = 1 / Math.sqrt(1 + Math.pow(omega * tau, 2));
+            // Calculate actual results
 
-    var phase = -Math.atan(omega * tau) * (180 / Math.PI);
+            var M = 1 / Math.sqrt(1 + Math.pow(omega * tau, 2));
 
-    // Get user's predictions
-    var ampPrediction = document.getElementById("amplitudePrediction").value;
-    var phasePrediction = document.getElementById("phasePrediction").value;
+            var phase = -Math.atan(omega * tau) * (180 / Math.PI);
 
-    if (ampPrediction === "" || phasePrediction === "") {
-        document.getElementById("predictionResult").innerHTML =
-            "Please make both predictions first.";
-        return;
-    }
+            // Get user's predictions
 
-    // Check amplitude prediction
-    var actualAmp = M < 0.95 ? "decrease" : "same";
+            var ampPrediction = document.getElementById("amplitudePrediction").value;
+            var phasePrediction = document.getElementById("phasePrediction").value;
 
-    // Check phase prediction
-    var actualPhase = Math.abs(phase) > 45 ? "large" : "small";
+            if (ampPrediction === "" || phasePrediction === "") {
 
-    var result = "";
+                document.getElementById("predictionResult").innerHTML =
+                    "Please make both predictions first.";
 
-    if (ampPrediction === actualAmp) {
-        result += "Correct amplitude prediction! ";
-    } else {
-        result += "Incorrect amplitude prediction. ";
-    }
+                return;
 
-    if (phasePrediction === actualPhase) {
-        result += "Correct phase prediction! ";
-    } else {
-        result += "Incorrect phase prediction. ";
-    }
+            }
 
-    result += "<br>Actual Magnitude: " + M.toFixed(3);
-    result += "<br>Actual Phase Lag: " + phase.toFixed(2) + "°";
+            // Check amplitude prediction
 
-    document.getElementById("predictionResult").innerHTML = result;
-}
+            var actualAmp = M < 0.95 ? "decrease" : "same";
+
+            // Check phase prediction
+
+            var actualPhase = Math.abs(phase) > 45 ? "large" : "small";
+
+            var result = "";
+
+            if (ampPrediction === actualAmp) {
+
+                result += "Correct amplitude prediction! ";
+
+            } else {
+
+                result += "Incorrect amplitude prediction. ";
+
+            }
+
+            if (phasePrediction === actualPhase) {
+
+                result += "Correct phase prediction! ";
+
+            } else {
+
+                result += "Incorrect phase prediction. ";
+
+            }
+
+            result += "<br>Actual Magnitude: " + M.toFixed(3);
+            result += "<br>Actual Phase Lag: " + phase.toFixed(2) + "°";
+
+            document.getElementById("predictionResult").innerHTML = result;
+
+        }
+
 
         document.getElementById("tau").oninput = updateModule2;
         document.getElementById("frequency").oninput = updateModule2;
         document.getElementById("amplitude").oninput = updateModule2;
-        
 
         updateModule2();
-        
-        
 
     </script>
 
 </body>
+
 </html>
