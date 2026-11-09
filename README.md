@@ -19,3 +19,5 @@ I then used an AI assistant (Claude) to:
 2. Add simple notes to explain the calculations and equations.
 3. Extend Predict & Check to five questions.
 4. Review the code against the homework requirements.
+##  Module 2
+I developed the first version of Module 2 myself, including the input sliders, frequency response calculations, Plotly plots, and Predict & Check feature. I then used an AI assistant  to improve the page layout, make it responsive on mobile devices, organize the input parameters and calculated results more clearly, and improve the overall appearance of the plots and interface.
