@@ -244,7 +244,7 @@
         function rand(a, b) { return a + Math.random() * (b - a) }
         function gauss() { var u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v) }
 
-        // ---------- closed-form responses ----------
+        
         function firstStep(K, tau, t) { return K * (1 - Math.exp(-t / tau)) }
 
         function firstSine(K, tau, w, t) {
@@ -268,7 +268,7 @@
             return secondStep(p[0], p[1], t)
         }
 
-        // ---------- new round ----------
+        
         function newSensor() {
             revealed = false
             document.getElementById("checkBtn").disabled = false
@@ -326,7 +326,7 @@
             Plotly.newPlot("plot", data, layout, { responsive: true, displayModeBar: false })
         }
 
-        // ---------- hints ----------
+       
         function showHint() {
             var hints
             if (S.type === "first" && S.mode === "step") hints = [
@@ -344,7 +344,7 @@
             document.getElementById("hintBtn").textContent = "Next Hint"
         }
 
-        // ---------- check and reveal ----------
+        
         function pointsFor(err) {
             if (err <= 0.10) return 1
             return Math.max(0, 1 - (err - 0.10) / 0.40)
