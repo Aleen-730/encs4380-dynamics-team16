@@ -27,4 +27,9 @@ I developed the first version of Module 2 myself, including the input sliders, f
 I developed the first version of Module 3 myself, including the sliders, second-order system calculations, plots, live measurements, and s-plane poles. I used AI to help me improve the interface, organize the information, make the design cleaner and more responsive, and fix some parts of the code.
 
 ## AI Usage – Module 4
+I worked on the implementation of Module 4, including the sensor guessing interface, parameter inputs, and interactive features. I used an AI assistant to help me:
 
+1. Improve the page styling and make the interface clearer and more user friendly.
+2. Improve the graphs' appearance and add interactive features, including hover information.
+3. Organize the graph presentation to make it easier to understand and compare the sensor responses.
+4. Review the interface and check that the features work as expected.
