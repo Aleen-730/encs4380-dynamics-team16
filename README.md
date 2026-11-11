@@ -38,7 +38,7 @@ I worked on the implementation of Module 4, including the sensor guessing interf
 3. Organize the graph presentation to make it easier to understand and compare the sensor responses.
 4. Review the interface and check that the features work as expected.
 
-###Screenshots
+### Screenshots
 
 ### 1. First-Order System with a Step Input
 
