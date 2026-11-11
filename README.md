@@ -37,3 +37,17 @@ I worked on the implementation of Module 4, including the sensor guessing interf
 2. Improve the graphs' appearance and add interactive features, including hover information.
 3. Organize the graph presentation to make it easier to understand and compare the sensor responses.
 4. Review the interface and check that the features work as expected.
+
+Screenshots
+
+### 1. First-Order System with a Step Input
+
+![First-order step response](images/module4-first-order-step.png)
+
+### 2. First-Order System with a Sine Input
+
+![First-order sine response](images/module4-first-order-sine.png)
+
+### 3. Second-Order System with a Step Input
+
+![Second-order step response](images/module4-second-order-step.png)
