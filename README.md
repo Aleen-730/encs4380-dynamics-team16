@@ -2,13 +2,13 @@
 
 https://aleen-730.github.io/encs4380-dynamics-team16/
 
-Aleen Othman: Module 1
+Aleen Othman 1231626: Module 1
 
-Aya Suliman: Module 2
+Aya Suliman 1231411: Module 2
 
-Mirna Musallam: Module 3
+Mirna Musallam 1230042: Module 3
 
-Heba Madi: Module 4
+Heba Madi 1231286: Module 4
 
 
 
