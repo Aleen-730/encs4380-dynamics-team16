@@ -52,12 +52,12 @@ I worked on the implementation of Module 4, including the sensor guessing interf
 
 ### 1. First-Order System with a Step Input
 
-![First-order step response](images/module4-first-order-step.png)
+<img width="1689" alt="First-order system with a step input" src="images/module4-first-order-step.png" />
 
 ### 2. First-Order System with a Sine Input
 
-![First-order sine response](images/module4-first-order-sine.png)
+<img width="1734" alt="First-order system with a sine input" src="images/module4-first-order-sine.png" />
 
 ### 3. Second-Order System with a Step Input
 
-![Second-order step response](images/module4-second-order-step.png)
+<img width="1698" alt="Second-order system with a step input" src="images/module4-second-order-step.png" />
