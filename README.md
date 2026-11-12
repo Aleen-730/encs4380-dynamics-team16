@@ -22,6 +22,10 @@ I then used an AI assistant (Claude) to:
 2. Add simple notes to explain the calculations and equations.
 3. Extend Predict & Check to five questions.
 4. Review the code against the homework requirements.
+
+<img width="1883" height="881" alt="image" src="https://github.com/user-attachments/assets/34deced9-72d4-48d1-b665-54a3e99e5c0a" />
+<img width="1894" height="644" alt="image" src="https://github.com/user-attachments/assets/e90b5152-7fae-4b6e-b541-0517cffdfd1e" />
+
 ##  Module 2
 I developed the first version of Module 2 myself, including the input sliders, frequency response calculations, Plotly plots, and Predict & Check feature. I then used an AI assistant  to improve the page layout, make it responsive on mobile devices, organize the input parameters and calculated results more clearly, and improve the overall appearance of the plots and interface.
 <img width="1913" height="968" alt="Screenshot 2026-11-11 153725" src="https://github.com/user-attachments/assets/cb2bef6a-279f-4005-94e2-b54010f0cd4c" />
