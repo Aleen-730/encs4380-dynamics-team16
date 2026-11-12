@@ -30,6 +30,12 @@ I developed the first version of Module 2 myself, including the input sliders, f
 ##  Module 3
 I developed the first version of Module 3 myself, including the sliders, second-order system calculations, plots, live measurements, and s-plane poles. I used AI to help me improve the interface, organize the information, make the design cleaner and more responsive, and fix some parts of the code.
 
+<img width="1689" height="780" alt="image" src="https://github.com/user-attachments/assets/88889a33-5cc7-479e-9618-b0a2dd396b01" />
+
+<img width="1734" height="771" alt="image" src="https://github.com/user-attachments/assets/00705221-4f0e-4449-93ba-d54ecb4fc0ba" />
+<img width="1698" height="792" alt="image" src="https://github.com/user-attachments/assets/6684397b-0607-4023-b65a-68ddd804a1fa" />
+
+
 ## AI Usage – Module 4
 I worked on the implementation of Module 4, including the sensor guessing interface, parameter inputs, and interactive features. I used an AI assistant to help me:
 
