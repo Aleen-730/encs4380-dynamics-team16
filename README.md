@@ -2,7 +2,7 @@
 
 https://aleen-730.github.io/encs4380-dynamics-team16/
 
-Aleen Othman 1231626: Module 1
+Aleen Othman 1231626: Module 1 ,  P1 – PID Playground
 
 Aya Suliman 1231411: Module 2
 
@@ -10,7 +10,7 @@ Mirna Musallam 1230042: Module 3
 
 Heba Madi 1231286: Module 4
 
-
+Homework 1 – Dynamics
 
 ## AI Usage – Module 1
 
@@ -61,3 +61,14 @@ I worked on the implementation of Module 4, including the sensor guessing interf
 ### 3. Second-Order System with a Step Input
 
 <img width="1698" alt="Second-order system with a step input" src="images/module4-second-order-step.png" />
+
+
+## Homework 2 – Control
+
+### P1 – PID Playground
+
+**Simulation Method:**
+- **First-order plant:** Used Explicit Euler, as explained in the State Space Modeling lecture.
+- **Second-order plant:** Initially tried Explicit Euler, but it gave inaccurate results for some slider values.
+- Tried reducing the time step (`dt`) to improve accuracy. The results improved in some cases, but the method still failed in others.
+- Therefore, switched to Semi-implicit Euler for the second-order plant, updating the velocity before the output.
