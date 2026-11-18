@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P1 - PID Playground</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+<style>
+  body{margin:0;background:#eef1f6;font-family:Georgia,"Times New Roman",serif;color:#1d2330}
+  header{background:#183a73;color:#fff;text-align:center;padding:14px;font-size:24px;font-weight:bold;position:relative}
+  header a{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#fff;font-size:15px;font-weight:normal;text-decoration:none}
+  .page{display:grid;grid-template-columns:240px 1fr;gap:14px;padding:14px;max-width:1300px;margin:auto}
+  .side,.main{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .card{background:#fff;border:1px solid #d5dbe6;border-radius:8px;overflow:hidden}
+  .card h3{margin:0;background:#183a73;color:#fff;padding:9px 12px;font-size:17px}
+  .body{padding:12px}
+  input[type=range]{width:100%}
+  select{width:100%;padding:5px;font-family:inherit}
+  .range{display:flex;justify-content:space-between;font-size:13px;color:#555}
+  .q{display:flex;align-items:center;gap:8px;margin:10px 0}
+  .q label{flex:1}
+  .q input{width:80px;padding:5px}
+  .card h4{margin:0;background:#c9d9ef;padding:9px;text-align:center;font-size:17px}
+  .plots{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .plot{height:280px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{background:#dfe7f3}
+  th,td{border:1px solid #d5dbe6;padding:7px;text-align:center}
+  .diagram{overflow-x:auto}
+  .diagram svg{width:100%;min-width:560px;font-family:Georgia,serif}
+  .diagram rect{fill:#c9d9ef;stroke:#183a73;stroke-width:2}
+  .diagram line,.diagram polyline{stroke:#183a73;stroke-width:2;fill:none}
+  .note{font-size:13px;color:#555;margin:8px 0 0}
+  .question{border-bottom:1px solid #d5dbe6;padding:6px 0 10px}
+  .question p{margin:6px 0}
+  .question select{width:auto;max-width:100%}
+  button{background:#183a73;color:#fff;border:0;border-radius:6px;padding:6px 14px;font-family:inherit;cursor:pointer}
+  .check{display:block;margin:14px auto 4px;padding:10px 26px;font-size:16px}
+  .pass{color:green;font-weight:bold}
+  .fail{color:#c00;font-weight:bold}
+
+  @media (max-width:900px){
+    .page,.plots{grid-template-columns:1fr}
+    header{font-size:19px;padding-top:36px}
+    header a{top:12px;transform:none}
+  }
+</style>
+</head>
+
+<body>
+
+<header><a href="../index.html">← Home</a>P1 – PID Playground</header>
+
+<div class="page">
+  <div class="side">
+    <div class="card"><h3>Plant</h3><div class="body">
+      <select id="plant">
+        <option value="first">First-order plant (Module 1)</option>
+        <option value="second">Second-order plant (Module 3)</option>
+      </select>
+
+      <p><b>Gain (K):</b> <span id="KVal">1</span></p>
+      <input type="range" id="K" min="0.1" max="5" step="0.1" value="1">
+      <div class="range"><span>0.1</span><span>5</span></div>
+
+      <div id="firstControls">
+        <p><b>Time constant (τ):</b> <span id="tauVal">1</span> s</p>
+        <input type="range" id="tau" min="0.05" max="5" step="0.05" value="1">
+        <div class="range"><span>0.05</span><span>5</span></div>
+      </div>
+
+      <div id="secondControls" style="display:none">
+        <p><b>Natural frequency (ω<sub>n</sub>):</b> <span id="wnVal">2</span> rad/s</p>
+        <input type="range" id="wn" min="0.2" max="10" step="0.1" value="2">
+        <div class="range"><span>0.2</span><span>10</span></div>
+
+        <p><b>Damping ratio (ζ):</b> <span id="zetaVal">0.5</span></p>
+        <input type="range" id="zeta" min="0" max="2" step="0.05" value="0.5">
+        <div class="range"><span>0</span><span>2</span></div>
+      </div>
+    </div></div>
+
+    <div class="card"><h3>PID Controller</h3><div class="body">
+      <p><b>K<sub>p</sub>:</b> <span id="KpVal">9</span></p>
+      <input type="range" id="Kp" min="0" max="50" step="0.5" value="9">
+      <div class="range"><span>0</span><span>50</span></div>
+
+      <p><b>K<sub>i</sub>:</b> <span id="KiVal">0</span></p>
+      <input type="range" id="Ki" min="0" max="25" step="0.5" value="0">
+      <div class="range"><span>0</span><span>25</span></div>
+
+      <p><b>K<sub>d</sub>:</b> <span id="KdVal">0</span></p>
+      <input type="range" id="Kd" min="0" max="5" step="0.05" value="0">
+      <div class="range"><span>0</span><span>5</span></div>
+    </div></div>
+
+    <div class="card"><h3>Simulation Settings</h3><div class="body">
+      <p><b>Setpoint step (r):</b> <span id="rVal">1</span></p>
+      <input type="range" id="r" min="-5" max="5" step="0.1" value="1">
+      <div class="range"><span>-5</span><span>5</span></div>
+
+      <p><b>Simulation time (T):</b> <span id="TVal">10</span> s</p>
+      <input type="range" id="T" min="1" max="40" step="1" value="10">
+      <div class="range"><span>1</span><span>40</span></div>
+
+      <div class="q"><label><b>u<sub>max</sub>:</b></label><input type="number" id="umax" step="any" value="10"></div>
+      <div class="q"><label><b>u<sub>min</sub>:</b></label><input type="number" id="umin" step="any" value="-10"></div>
+
+      <p><label><input type="checkbox" id="limitU"> Limit u</label></p>
+     </div></div>
+    </div>
+
+  <div class="main">
+    <div class="card"><h3>Block Diagram</h3><div class="body">
+      <div class="diagram">
+        <svg viewBox="0 0 760 150">
+          <defs>
+            <marker id="arrow" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="#183a73"/>
+            </marker>
+          </defs>
+
+          <text x="5" y="65" font-size="18">r</text>
+          <line x1="22" y1="60" x2="70" y2="60" marker-end="url(#arrow)"/>
+          <circle cx="90" cy="60" r="18" fill="#fff" stroke="#183a73" stroke-width="2"/>
+          <text x="82" y="66" font-size="18">Σ</text>
+          <text x="58" y="50" font-size="16">+</text>
+          <text x="70" y="100" font-size="20">−</text>
+
+          <line x1="108" y1="60" x2="168" y2="60" marker-end="url(#arrow)"/>
+          <text x="130" y="50" font-size="16">e</text>
+          <rect x="170" y="30" width="150" height="60" rx="6"/>
+          <text x="245" y="54" font-size="16" text-anchor="middle" font-weight="bold">PID</text>
+          <text x="245" y="76" font-size="12" text-anchor="middle">Kp·e + Ki∫e − Kd·ẏ</text>
+
+          <line x1="320" y1="60" x2="368" y2="60" marker-end="url(#arrow)"/>
+          <text x="338" y="50" font-size="16">u</text>
+          <g id="limitBlock">
+            <rect x="370" y="35" width="90" height="50" rx="6"/>
+            <text x="415" y="65" font-size="14" text-anchor="middle">Limit u</text>
+          </g>
+          <line x1="460" y1="60" x2="498" y2="60" marker-end="url(#arrow)"/>
+          <rect x="500" y="30" width="200" height="60" rx="6"/>
+          <text x="600" y="54" font-size="16" text-anchor="middle" font-weight="bold">Plant</text>
+          <text id="plantText" x="600" y="76" font-size="13" text-anchor="middle">K / (τs + 1)</text>
+
+          <line x1="700" y1="60" x2="750" y2="60" marker-end="url(#arrow)"/>
+          <text x="738" y="50" font-size="16">y</text>
+          <polyline points="725,60 725,130 90,130 90,80" marker-end="url(#arrow)"/>
+          <text x="400" y="122" font-size="13" text-anchor="middle">feedback</text>
+        </svg>
+      </div>
+      <p class="note">The D term uses the output slope (−K<sub>d</sub>·dy/dt) to avoid a sudden spike when the setpoint changes.</p>
+    </div></div>
+
+    <div class="card"><h3>Live Metrics</h3><div class="body">
+      <table>
+        <tr><th>Rise time</th><th>Overshoot</th><th>Settling time</th><th>Steady-state error</th></tr>
+        <tr><td id="riseTime">–</td><td id="overshoot">–</td><td id="settlingTime">–</td><td id="ssError">–</td></tr>
+      </table>
+    </div></div>
+
+    <div class="plots">
+      <div class="card"><h4>Output y vs Setpoint</h4><div id="yPlot" class="plot"></div></div>
+      <div class="card"><h4>Control Signal u</h4><div id="uPlot" class="plot"></div></div>
+    </div>
+
+    <div class="card"><h3>Validation Checks (Homework 2, section 2.1)</h3><div class="body">
+      <p class="note" style="margin:0 0 8px">Plant K/(τs + 1) with K = 1 and τ = 1 s. These run on their own and do not depend on the sliders.</p>
+      <table>
+        <tr><th>Check</th><th>Expected</th><th>Simulated</th><th>Result</th></tr>
+        <tbody id="validation"></tbody>
+      </table>
+    </div></div>
+
+    <div class="card"><h3>Predict, then Check</h3><div class="body">
+      <p>For each question: press <b>Set up</b>, choose your prediction, then move the control and watch the plots and the Live Metrics.</p>
+      <div id="questions"></div>
+      <button class="check" onclick="checkAnswers()">Check Answers</button>
+      <p id="answerResult" style="text-align:center"></p>
+    </div></div>
+  </div>
+</div>
+<script>
+// PID and plant parameters
+var parameters = {
+  plant:"first",
+  K:1, tau:1, wn:2, zeta:0.5,
+  Kp:9, Ki:0, Kd:0,
+  r:1, T:10, umax:10, umin:-10, limitU:false
+}
+
+var h = 0.0002        // RK4 time step (s)
+var maxPoints = 2000  // max points kept for the plots
+
+// Calculate the control signal (x holds y, velocity and integral)
+function control(x){
+  var p = parameters
+  var y = x[0], v = x[1], integral = x[2]
+  var error = p.r - y
+  var u
+
+  // Use the output slope for D, so the setpoint step does not cause spike
+  if (p.plant == "second"){
+    var dedt = -v
+    u = p.Kp*error + p.Ki*integral + p.Kd*dedt
+  } else {
+    u = (p.Kp*error + p.Ki*integral + p.Kd*y/p.tau) /
+        (1 + p.Kd*p.K/p.tau)
+  }
+
+  // Keep u inside the limits when the box is checked
+  if (p.limitU){
+    u = Math.min(
+      Math.max(u, Math.min(p.umin, p.umax)),
+      Math.max(p.umin, p.umax)
+    )
+  }
+  return u
+}
+
+//RK4
+function f(x){
+  var p = parameters
+  var y = x[0], v = x[1]
+  var u = control(x)
+  var error = p.r - y
+  if (p.plant == "first"){
+    return [(p.K*u - y) / p.tau, 0, error]
+  }
+  return [
+    v,
+    p.wn*p.wn*(p.K*u - y) - 2*p.zeta*p.wn*v,
+    error
+  ]
+}
+
+// Add part of the slope to the current state
+function add(x, k, c){
+  return x.map(function(xi, i){
+    return xi + c*k[i]
+  })
+}
+
+// Simulate the response with four RK4 slopes per time step
+function simulate(){
+  var x = [0, 0, 0]
+  var t = [], yOut = [], uOut = []  // points used in the graphs
+  var yAll = []                     // all points, used for the metrics
+  var steps = Math.round(parameters.T / h)
+  var saveEvery = Math.ceil(steps / maxPoints)
+
+  for (var n = 0; n <= steps; n++){
+    yAll.push(x[0])
+    if (n % saveEvery == 0 || n == steps){
+      t.push(n*h)
+      yOut.push(x[0])
+      uOut.push(control(x))
+    }
+    if (n == steps) break
+
+    var k1 = f(x)
+    var k2 = f(add(x, k1, h/2))
+    var k3 = f(add(x, k2, h/2))
+    var k4 = f(add(x, k3, h))
+    x = x.map(function(xi, i){
+      return xi + h/6 * (k1[i] + 2*k2[i] + 2*k3[i] + k4[i])
+    })
+  }
+  return {t:t, y:yOut, u:uOut, yAll:yAll}
+}
+
+//metrics (rise time 10% to 90%, overshoot Mp, settling time ts)
+//Uses every RK4 step (time = i*h), not only the plotted points
+function metrics(sim){
+  var p = parameters
+  var y = sim.yAll
+  var n = y.length
+
+  var result = {
+    rise:"–",
+    overshoot:"–",
+    settling:"not settled (increase T)",
+    error:"–"
+  }
+
+  //Expected final output if the system is stable
+  //(with I the error goes to 0; with P only, e_ss = r/(1 + K*Kp))
+  var uFinal = p.Ki > 0 ? p.r/p.K : p.Kp*p.r/(1 + p.K*p.Kp)
+
+  if (p.limitU){
+    uFinal = Math.min(Math.max(uFinal, Math.min(p.umin, p.umax)), Math.max(p.umin, p.umax))
+  }
+
+  var final = p.K * uFinal
+
+  if (!isFinite(final) || !isFinite(y[n-1])) return result
+
+  if (Math.abs(final) < 1e-9){  //No control action (Kp = Ki = 0): y stays at 0
+    result.settling = "–"
+    result.error = (p.r - y[n-1]).toFixed(3)
+    return result
+  }
+
+  var t10 = null, t90 = null, peak = 0, lastOutside = -1
+
+  for (var i = 0; i < n; i++){
+    if (!isFinite(y[i])) return result
+
+    var s = y[i] / final// response as a fraction of its final value
+
+    if (t10 === null && s >= 0.1) t10 = i*h //rise time
+    if (t90 === null && s >= 0.9) t90 = i*h
+    if (s > peak) peak = s
+
+    // Check if the output is outside the 2% range
+    if (Math.abs(s - 1) > 0.02) lastOutside = i
+  }
+
+  var ts = (lastOutside + 1)*h
+
+  //when it did not settle,dont show numbers
+  if (ts > 0.9*p.T) return result
+
+  result.rise = (t90 - t10).toPrecision(3) + " s"
+  result.overshoot = (Math.max(peak - 1, 0)*100).toFixed(1) + " %"
+  result.settling = ts.toPrecision(3) + " s"
+
+  // Steady-state error measured from the simulation (last point)
+  var error = p.r - y[n-1]
+  result.error = (Math.abs(error) < 0.0005 ? 0 : error).toFixed(3)
+  return result
+}
+
+function update(){
+  var sim = simulate()
+  var p = parameters
+
+  // Update the plant label and limit block
+  document.getElementById("plantText").textContent =
+    p.plant == "first" ? "K / (τs + 1)" : "K·ωn² / (s² + 2ζωn·s + ωn²)"
+  document.getElementById("limitBlock").style.opacity = p.limitU ? 1 : 0.3
+
+  var m = metrics(sim)
+  document.getElementById("riseTime").innerHTML = m.rise
+  document.getElementById("overshoot").innerHTML = m.overshoot
+  document.getElementById("settlingTime").innerHTML = m.settling
+  document.getElementById("ssError").innerHTML = m.error
+
+  var layout = {
+    margin:{l:45, r:10, t:10, b:40},
+    xaxis:{title:"Time (s)"},
+    legend:{orientation:"h", y:-0.3}
+  }
+  var options = {responsive:true, displayModeBar:false}
+
+  // Output and setpoint graph
+  Plotly.react("yPlot", [
+    {x:sim.t, y:sim.y, name:"Output y"},
+    {
+      x:[0, p.T], y:[p.r, p.r],
+      name:"Setpoint r", mode:"lines", line:{dash:"dash"}
+    }
+  ], Object.assign({}, layout, {yaxis:{title:"y(t)"}}), options)
+
+  // Control signal graph
+  var uLines = [{x:sim.t, y:sim.u, name:"Control u"}]
+  if (p.limitU){
+    var uHigh = Math.max(p.umin, p.umax)
+    var uLow = Math.min(p.umin, p.umax)
+    uLines.push({
+      x:[0, p.T], y:[uHigh, uHigh], name:"u max",
+      mode:"lines", line:{dash:"dash", color:"#c00"}
+    })
+    uLines.push({
+      x:[0, p.T], y:[uLow, uLow], name:"u min",
+      mode:"lines", line:{dash:"dash", color:"#c00"}
+    })
+  }
+  Plotly.react("uPlot", uLines, Object.assign({}, layout, {yaxis:{title:"u(t)"}}), options)
+}
+
+function showLabel(id){
+  document.getElementById(id+"Val").innerHTML = parameters[id]
+}
+
+// Update the simulation when slider moves
+var sliders = ["K","tau","wn","zeta","Kp","Ki","Kd","r","T"]
+
+sliders.forEach(function(id){
+  document.getElementById(id).oninput = function(){
+    parameters[id] = Number(this.value)
+    showLabel(id)
+    update()
+  }
+})
+document.getElementById("umax").oninput = function(){
+  parameters.umax = Number(this.value)
+  update()
+}
+document.getElementById("umin").oninput = function(){
+  parameters.umin = Number(this.value)
+  update()
+}
+document.getElementById("limitU").onchange = function(){
+  parameters.limitU = this.checked
+  update()
+}
+
+
+function showPlantControls(){//show the settings for the chosen plant
+  document.getElementById("firstControls").style.display =
+    parameters.plant == "first" ? "block" : "none"
+
+  document.getElementById("secondControls").style.display =
+    parameters.plant == "second" ? "block" : "none"
+}
+document.getElementById("plant").onchange = function(){
+  parameters.plant = this.value
+  showPlantControls()
+  update()
+}
+
+//questions
+var start = {
+  plant:"first", K:1, tau:1, wn:2, zeta:0.5,
+  Kp:9, Ki:0, Kd:0, r:1, T:10,
+  umax:10, umin:-10, limitU:false
+}
+
+var questions = [
+  {setup:{},
+   text:"First-order plant, P only (K<sub>p</sub> = 9). If you increase <b>K<sub>p</sub> from 9 to 19</b>, the steady-state error will:",
+   options:["Increase", "Decrease, but not to zero", "Become zero"], answer:1,
+   explain:"e<sub>ss</sub> = r/(1 + K·K<sub>p</sub>): 0.100 → 0.050. P makes it faster (rise time 0.220 s → 0.110 s) but never removes the error."},
+  {setup:{},
+   text:"Same plant (K<sub>p</sub> = 9). If you add <b>K<sub>i</sub> = 5</b>, the steady-state error will:",
+   options:["Stay at 0.1", "Decrease, but not to zero", "Become zero"], answer:2,
+   explain:"The integral keeps growing while there is an error, so the error goes to 0 (0.100 → 0.000)."},
+  {setup:{plant:"second"},
+   text:"Second-order plant (ζ = 0.5, ω<sub>n</sub> = 2), K<sub>p</sub> = 9. If you increase <b>K<sub>d</sub> from 0 to 1</b>, the overshoot will:",
+   options:["Increase", "Decrease", "Stay the same"], answer:1,
+   explain:"D adds damping: overshoot 60.5 % → 18.4 %, and the response settles faster (3.66 s → 1.31 s)."},
+  {setup:{Kp:50},
+   text:"First-order plant, K<sub>p</sub> = 50 (u starts at 50). If you check <b>Limit u</b> (u between −10 and 10), the rise time will:",
+   options:["Get shorter", "Get longer", "Stay the same"], answer:1,
+   explain:"u can push at most 10 instead of 50, so y rises more slowly: 0.0430 s → 0.0854 s."}
+]
+function showQuestions(){
+  var html = ""
+  questions.forEach(function(q, i){
+    var options = q.options.map(function(o, j){
+      return `<option value="${j}">${o}</option>`
+    }).join("")
+    html += `<div class="question">
+      <p><b>${i+1}.</b> ${q.text}</p>
+      <button onclick="setUp(${i})">Set up</button>
+      <select id="q${i}"><option value="">Your prediction…</option>${options}</select>
+      <p id="result${i}"></p>
+    </div>`
+  })
+  document.getElementById("questions").innerHTML = html
+}
+function setUp(i){
+  Object.assign(parameters, start, questions[i].setup)
+  sliders.forEach(function(id){
+    document.getElementById(id).value = parameters[id]
+    showLabel(id)
+  })
+  document.getElementById("plant").value = parameters.plant
+  document.getElementById("umax").value = parameters.umax
+  document.getElementById("umin").value = parameters.umin
+  document.getElementById("limitU").checked = parameters.limitU
+  showPlantControls()
+  update()
+}
+
+function checkAnswers(){
+  for (var i = 0; i < questions.length; i++){
+    if (document.getElementById("q"+i).value === ""){
+      document.getElementById("answerResult").innerHTML = "Please answer all the questions first."
+      return
+    }
+  }
+  var score = 0
+  questions.forEach(function(q, i){
+    var ok = Number(document.getElementById("q"+i).value) == q.answer
+    if (ok) score++
+    document.getElementById("result"+i).innerHTML =
+      `<span class="${ok ? 'pass' : 'fail'}">${ok ? 'Correct!' : 'Wrong, answer: ' + q.options[q.answer]}</span> ${q.explain}`
+  })
+  document.getElementById("answerResult").innerHTML = `Score: ${score} / ${questions.length}`
+}
+
+// Validation tests using K = 1 and tau = 1
+function runCheck(settings){
+  var saved = Object.assign({}, parameters)
+  Object.assign(parameters, start, settings)
+  var y = simulate().yAll
+  Object.assign(parameters, saved)
+  return y
+}
+
+// Find when y first reaches the given level
+function timeToReach(y, level){
+  for (var i = 0; i < y.length; i++){
+    if (y[i] >= level) return i*h
+  }
+  return NaN
+}
+
+function showValidation(){
+  var y1 = runCheck({Kp:9})  // Check 1: P only
+  var final1 = y1[y1.length-1]
+  var y2 = runCheck({Kp:1, Ki:1, T:20})  // Check 2: PI with Kp = Ki = 1
+  var final2 = y2[y2.length-1]
+  var peak2 = 0
+  y2.forEach(function(v){
+    if (v > peak2) peak2 = v
+  })
+  var y3 = runCheck({Kp:9, Ki:5, T:20})  // Check 3: PI should remove steady-state error
+
+  // Compare expected and simulated values
+  var rows = [
+    [
+      "1. P, K<sub>p</sub> = 9: closed-loop τ = τ/(1 + K·K<sub>p</sub>)",
+      0.1, timeToReach(y1, 0.632*final1), " s"
+    ],
+    [
+      "1. P, K<sub>p</sub> = 9: e<sub>ss</sub> = 1/(1 + K·K<sub>p</sub>)",
+      10, (1 - final1)*100, " %"
+    ],
+    [
+      "2. PI, K<sub>p</sub> = K<sub>i</sub> = 1: ζ = 1 → no overshoot",
+      0, (peak2/final2 - 1)*100, " %"
+    ],
+    [
+      "2. PI, K<sub>p</sub> = K<sub>i</sub> = 1: ω<sub>n</sub> = 1 rad/s → 63.2% at t = 1/ω<sub>n</sub>",
+      1, timeToReach(y2, 0.632*final2), " s"
+    ],
+    [
+      "3. PI, K<sub>p</sub> = 9, K<sub>i</sub> = 5: e<sub>ss</sub> = 0",
+      0, (1 - y3[y3.length-1])*100, " %"
+    ]
+  ]
+
+  var html = ""
+  rows.forEach(function(r){
+    var pass = Math.abs(r[2] - r[1]) <=
+      0.02*Math.abs(r[1]) + 0.01
+    html += `<tr><td>${r[0]}</td><td>${r[1]}${r[3]}</td><td>${r[2].toFixed(3)}${r[3]}</td>
+      <td class="${pass ? 'pass' : 'fail'}">${pass ? 'PASS' : 'FAIL'}</td></tr>`
+  })
+  document.getElementById("validation").innerHTML = html
+}
+showQuestions()
+showValidation()
+update()
+</script>
+
+</body>
+</html>
