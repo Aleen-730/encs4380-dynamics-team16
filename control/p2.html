@@ -1,0 +1,755 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>P2 - Slow Sensor</title>
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+
+   
+body {
+    margin: 0;
+    background: #eef1f6;
+    font-family: Georgia, "Times New Roman", serif;
+    color: #1d2330;
+}
+
+header {
+    background: #183a73;
+    color: #fff;
+    text-align: center;
+    padding: 14px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.page {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 14px;
+    padding: 14px;
+    max-width: 1300px;
+    margin: auto;
+}
+
+.side, .main {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #d5dbe6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card h3 {
+    margin: 0;
+    background: #183a73;
+    color: #fff;
+    padding: 9px 12px;
+    font-size: 17px;
+}
+
+.body {
+    padding: 12px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th, td {
+    border: 1px solid #d5dbe6;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background: #dfe7f3;
+}
+
+input[type=range] {
+    width: 100%;
+}
+
+.range {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #555;
+}
+
+.question {
+    border-bottom: 1px solid #d5dbe6;
+    padding: 6px 0 10px;
+}
+
+.question p {
+    margin: 6px 0;
+}
+
+.question select {
+    width: auto;
+    max-width: 100%;
+    padding: 5px;
+    font-family: inherit;
+}
+
+button {
+    background: #183a73;
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.check {
+    display: block;
+    margin: 14px auto 4px;
+    padding: 10px 26px;
+    font-size: 16px;
+}
+
+#responsePlot {
+    width: 100%;
+    height: 450px;
+    display: none;
+}
+
+.diagram {
+    overflow-x: auto;
+}
+
+.diagram svg {
+    width: 100%;
+    min-width: 500px;
+    font-family: Georgia, serif;
+}
+
+@media (max-width: 900px) {
+    .page {
+        grid-template-columns: 1fr;
+    }
+
+    header {
+        font-size: 19px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+   <header>
+    <a href="index.html">← Home</a>
+    P2 – A Slow Sensor in the Loop
+</header>
+
+    <div class="page">
+
+    <div class="side">
+
+        <div class="card">
+            <h3>System Parameters</h3>
+            <div class="body">
+
+    <label for="tauSensor">Sensor Time Constant (τs):</label>
+    <input
+        type="range"
+        id="tauSensor"
+        min="0.05"
+        max="3"
+        step="0.05"
+        value="0.2"
+    >
+    <span id="tauSensorValue">0.2 s</span>
+
+    <br><br>
+
+    <label for="kp">Proportional Gain (Kp):</label>
+    <input
+        type="range"
+        id="kp"
+        min="0"
+        max="20"
+        step="0.1"
+        value="9"
+    >
+    <span id="kpValue">9</span>
+
+    <br><br>
+
+    <label for="ki">Integral Gain (Ki):</label>
+    <input
+        type="range"
+        id="ki"
+        min="0"
+        max="10"
+        step="0.1"
+        value="0"
+    >
+    <span id="kiValue">0</span>
+
+    <br><br>
+
+    <label for="kd">Derivative Gain (Kd):</label>
+    <input
+        type="range"
+        id="kd"
+        min="0"
+        max="5"
+        step="0.1"
+        value="0"
+    >
+    <span id="kdValue">0</span>
+                </div>
+        </div>
+
+    </div>
+
+    <div class="main">
+
+    <br><br>
+    <div class="card">
+
+<div class="card">
+    <h3>System Block Diagram</h3>
+    <div class="body">
+        <div class="diagram">
+            <svg viewBox="0 0 900 330"
+                 xmlns="http://www.w3.org/2000/svg">
+
+                <defs>
+                    <marker id="arrow"
+                        markerWidth="10"
+                        markerHeight="10"
+                        refX="8" refY="3"
+                        orient="auto">
+                        <path d="M0,0 L0,6 L9,3 Z"
+                              fill="#183a73"/>
+                    </marker>
+                </defs>
+
+                <!-- Setpoint -->
+                <text x="20" y="95" font-size="17">r(t)</text>
+                <line x1="55" y1="90" x2="105" y2="90"
+                      stroke="#183a73" stroke-width="2"
+                      marker-end="url(#arrow)"/>
+
+                <!-- Summing point -->
+                <circle cx="130" cy="90" r="22"
+                        fill="white" stroke="#183a73"
+                        stroke-width="2"/>
+                <text x="123" y="96" font-size="18">+</text>
+                <text x="125" y="119" font-size="14">−</text>
+
+                <!-- PID -->
+                <line x1="152" y1="90" x2="205" y2="90"
+                      stroke="#183a73" stroke-width="2"
+                      marker-end="url(#arrow)"/>
+
+                <rect x="210" y="55" width="130" height="70"
+                      rx="8" fill="#e8eef8"
+                      stroke="#183a73" stroke-width="2"/>
+                <text x="275" y="95" text-anchor="middle"
+                      font-size="18">PID Controller</text>
+
+                <!-- Plant -->
+                <line x1="340" y1="90" x2="400" y2="90"
+                      stroke="#183a73" stroke-width="2"
+                      marker-end="url(#arrow)"/>
+
+                <rect x="405" y="55" width="120" height="70"
+                      rx="8" fill="#e8eef8"
+                      stroke="#183a73" stroke-width="2"/>
+                <text x="465" y="95" text-anchor="middle"
+                      font-size="18">Plant</text>
+
+                <!-- True output -->
+                <line x1="525" y1="90" x2="585" y2="90"
+                      stroke="#183a73" stroke-width="2"
+                      marker-end="url(#arrow)"/>
+                <text x="555" y="70" text-anchor="middle"
+                      font-size="15">y(t)</text>
+
+                <!-- Sensor -->
+                <rect x="590" y="55" width="135" height="70"
+                      rx="8" fill="#e1f2e8"
+                      stroke="#287a4b" stroke-width="2"/>
+                <text x="657" y="85" text-anchor="middle"
+                      font-size="17">Slow Sensor</text>
+                <text x="657" y="108" text-anchor="middle"
+                      font-size="15">τs</text>
+
+                <!-- Measured output -->
+                <line x1="725" y1="90" x2="775" y2="90"
+                      stroke="#287a4b" stroke-width="2"
+                      marker-end="url(#arrow)"/>
+                <text x="795" y="85" font-size="16">ys(t)</text>
+
+                <!-- Feedback path -->
+                <line x1="800" y1="100" x2="800" y2="245"
+                      stroke="#287a4b" stroke-width="2"/>
+                <line x1="800" y1="245" x2="130" y2="245"
+                      stroke="#287a4b" stroke-width="2"
+                      marker-end="url(#arrow)"/>
+                <line x1="130" y1="245" x2="130" y2="112"
+                      stroke="#287a4b" stroke-width="2"
+                      marker-end="url(#arrow)"/>
+
+                <text x="460" y="230" text-anchor="middle"
+                      font-size="16" fill="#287a4b">
+                    Feedback: Measured Output
+                </text>
+
+                <text x="450" y="300" text-anchor="middle"
+                      font-size="15" fill="#555">
+                    P2 – A Slow Sensor in the Loop
+                </text>
+            </svg>
+        </div>
+    </div>
+</div>
+
+    <h3>Predict, then Check</h3>
+    <div class="body">
+        <p>Choose your prediction, change the control value, then check your answer.</p>
+
+        <div id="questions"></div>
+
+        <button id="checkAnswers">Check Answers</button>
+
+        <p id="answerResult"></p>
+    </div>
+</div>
+
+<br><br>
+<p id="predictionFeedback"></p>
+
+   <div class="card">
+    <h3>Validation Checks</h3>
+    <div class="body">
+      <table>
+    <tr>
+        <th>Check</th>
+        <th>Expected</th>
+        <th>Simulated</th>
+        <th>Result</th>
+    </tr>
+    <tr>
+        <td>P, Kp = 9: Closed-loop τ</td>
+        <td>0.1 s</td>
+        <td id="sim1">-</td>
+        <td id="res1">-</td>
+    </tr>
+    <tr>
+        <td>P, Kp = 9: ess</td>
+        <td>10%</td>
+        <td id="sim2">-</td>
+        <td id="res2">-</td>
+    </tr>
+    <tr>
+        <td>PI, Kp = Ki = 1: Overshoot</td>
+        <td>0%</td>
+        <td id="sim3">-</td>
+        <td id="res3">-</td>
+    </tr>
+    <tr>
+        <td>PI, Kp = Ki = 1: Time to 63.2%</td>
+        <td>1.000 s</td>
+        <td id="sim4">-</td>
+        <td id="res4">-</td>
+    </tr>
+    <tr>
+        <td>PI, Kp = 9, Ki = 5: ess</td>
+        <td>0%</td>
+        <td id="sim5">-</td>
+        <td id="res5">-</td>
+    </tr>
+</table>
+    </div>
+</div>
+   
+   <div class="card">
+    <div class="card"></div>
+    <h3>System Response</h3>
+    <div class="body">
+
+        <button id="checkButton">Check Response</button>
+
+        <div id="responsePlot"></div>
+
+    </div>
+</div>
+
+    <script>
+        // Plant parameters
+        const K = 1;
+        const tau = 1;
+
+        // Simulation parameters
+        const setpoint = 1;
+        const dt = 0.001;
+        const simulationTime = 5;
+
+        const tauSensor = document.getElementById("tauSensor");
+        const tauSensorValue = document.getElementById("tauSensorValue");
+
+        // System states
+        let y = 0;
+        let ys = 0;
+        let integral = 0;
+        let previousYs = 0;
+
+
+        // Data arrays for the plot
+        let timeData = [];
+        let trueOutput = [];
+        let measuredOutput = [];
+        let setpointData = [];
+        // ---------- Predict, then check ----------
+
+var questions = [
+    {
+    setup: {
+        tauSensor: 0.2,
+        kp: 9,
+        ki: 0,
+        kd: 0
+    },
+    text: "If the sensor time constant (τs) increases, the overshoot will:",
+    options: ["Decrease", "Increase", "Stay the same"],
+    answer: 1,
+    explain: "A slower sensor creates more delay in the feedback signal, which can increase overshoot."
+},
+    {
+    setup: {
+        tauSensor: 2,
+        kp: 2,
+        ki: 0,
+        kd: 1
+    },
+    text: "If Kp increases from 2 to 5 (with τs = 2 s), the overshoot will:",
+    options: ["Decrease", "Increase", "Stay the same"],
+    answer: 1,
+    explain: "Increasing Kp makes the controller react more strongly to the error, which can increase overshoot."
+},
+   {
+    setup: {
+        tauSensor: 2,
+        kp: 9,
+        ki: 0,
+        kd: 1
+    },
+    text: "If Ki increases from 0 to 1, the oscillation will:",
+    options: ["Decrease", "Increase", "Stay the same"],
+    answer: 1,
+    explain: "Increasing Ki strengthens integral action, which can increase oscillation."
+},
+   {
+    setup: {
+        tauSensor: 2,
+        kp: 9,
+        ki: 0,
+        kd: 0
+    },
+    text: "If Kd increases from 0 to 1, the oscillation will:",
+    options: ["Decrease", "Increase", "Stay the same"],
+    answer: 0,
+    explain: "Derivative action adds damping, which can reduce oscillation."
+}
+];
+function showQuestions() {
+    let html = "";
+
+    questions.forEach(function(q, i) {
+        let options = q.options.map(function(option, j) {
+            return `<option value="${j}">${option}</option>`;
+        }).join("");
+
+        html += `
+            <div class="question">
+                <p><b>${i + 1}.</b> ${q.text}</p>
+                <button onclick="setUp(${i})">Set up</button>
+
+                <select id="q${i}">
+                    <option value="">Your prediction...</option>
+                    ${options}
+                </select>
+
+                <p id="result${i}"></p>
+            </div>
+        `;
+    });
+
+    document.getElementById("questions").innerHTML = html;
+}
+function setUp(i) {
+    let settings = questions[i].setup;
+
+    tauSensor.value = settings.tauSensor;
+    kp.value = settings.kp;
+    ki.value = settings.ki;
+    kd.value = settings.kd;
+
+    tauSensorValue.textContent = tauSensor.value + " s";
+    kpValue.textContent = kp.value;
+    kiValue.textContent = ki.value;
+    kdValue.textContent = kd.value;
+
+    runSimulation();
+}
+function checkAnswers() {
+        for (let i = 0; i < questions.length; i++) {
+        if (document.getElementById("q" + i).value === "") {
+            document.getElementById("answerResult").textContent =
+                "Please answer all questions first.";
+            return;
+        }
+    }
+    let score = 0;
+
+    questions.forEach(function(q, i) {
+        let selected = document.getElementById("q" + i).value;
+
+        let correct = Number(selected) === q.answer;
+
+        if (correct) {
+            score++;
+        }
+
+        document.getElementById("result" + i).innerHTML =
+            `<span style="color:${correct ? 'green' : 'red'}">
+                ${correct ? 'Correct!' : 'Wrong! Correct answer: ' + q.options[q.answer]}
+            </span>
+            ${q.explain}`;
+    });
+
+    document.getElementById("answerResult").textContent =
+        `Score: ${score} / ${questions.length}`;
+}
+
+        function runSimulation() {
+             const plot = document.getElementById("responsePlot");
+    plot.style.display = "block";
+    plot.style.height = "450px";
+           
+            y = 0;
+            ys = 0;
+            integral = 0;
+            previousYs = 0;
+
+            timeData = [];
+            trueOutput = [];
+            measuredOutput = [];
+            setpointData = [];
+
+            for (let t = 0; t <= simulationTime; t += dt) {
+
+                // to calculate the error
+                let error = setpoint - ys;
+
+                // Integral term
+                integral += error * dt;
+
+                //derivative term
+                let derivative = -(ys - previousYs) / dt;
+
+                // PID control signal
+                let u = kp.value * error + ki.value * integral + kd.value * derivative;
+
+                //save current error
+                previousYs = ys;
+
+                //update
+                let dy = (-y + K * u) / tau;
+                y = y + dy * dt;
+                let dys = (y - ys) / tauSensor.value;
+                ys = ys + dys * dt;
+
+                //store results
+                timeData.push(t);
+                trueOutput.push(y);
+                measuredOutput.push(ys);
+                setpointData.push(setpoint);
+
+            }
+
+            const trace1 = {
+                x: timeData,
+                y: trueOutput,
+                name: "True Output",
+                mode: "lines"
+            };
+
+            const trace2 = {
+                x: timeData,
+                y: measuredOutput,
+                name: "Measured Output",
+                mode: "lines"
+            };
+
+            const trace3 = {
+                x: timeData,
+                y: setpointData,
+                name: "Setpoint",
+                mode: "lines"
+            };
+
+            const data = [trace1, trace2, trace3];
+
+            const layout = {
+                title: "System Response",
+                xaxis: {
+                    title: "Time (seconds)"
+                },
+                yaxis: {
+                    title: "Output"
+                }
+            };
+
+            Plotly.newPlot("responsePlot", data, layout);
+        }
+
+        tauSensor.addEventListener("input", function() {
+
+            tauSensorValue.textContent = tauSensor.value + " s";
+            runSimulation();
+        });
+
+        const kp = document.getElementById("kp");
+        const kpValue = document.getElementById("kpValue");
+
+        kp.addEventListener("input", function() {
+            kpValue.textContent = kp.value;
+             runSimulation();
+        });
+
+        const ki = document.getElementById("ki");
+        const kiValue = document.getElementById("kiValue");
+
+        ki.addEventListener("input", function() {
+            kiValue.textContent = ki.value;
+             runSimulation();
+        });
+
+        const kd = document.getElementById("kd");
+
+        const kdValue = document.getElementById("kdValue");
+        
+
+        kd.addEventListener("input", function() {
+            kdValue.textContent = kd.value;
+             runSimulation();
+        });
+
+        const checkButton = document.getElementById("checkButton");
+
+
+        checkButton.addEventListener("click", function() {
+             console.log("Check Response clicked");
+    runSimulation();
+});
+function runValidation() {
+    const tests = [
+        { kp: 9, ki: 0, kd: 0, expected: 0.1 },
+        { kp: 9, ki: 0, kd: 0, expected: 10 },
+        { kp: 1, ki: 1, kd: 0, expected: 0 },
+        { kp: 1, ki: 1, kd: 0, expected: 2.146 },
+        { kp: 9, ki: 5, kd: 0, expected: 0 }
+    ];
+
+    function simulate(kp, ki) {
+    let y = 0;
+    let integral = 0;
+    const dt = 0.001;
+    const duration = 10;
+
+    let maxY = 0;
+    let time63 = null;
+    let outputData = [];
+
+    for (let t = 0; t <= duration; t += dt) {
+        let error = 1 - y;
+        integral += error * dt;
+
+        let u = kp * error + ki * integral;
+
+        let dy = -y + u;
+        y += dy * dt;
+
+        if (y > maxY) maxY = y;
+
+        outputData.push({ time: t, output: y });
+    }
+
+    const finalY = outputData[outputData.length - 1].output;
+const threshold = 0.632 * finalY;
+
+for (let i = 0; i < outputData.length; i++) {
+    if (outputData[i].output >= threshold) {
+        time63 = outputData[i].time;
+        break;
+    }
+}
+
+    return {
+        finalY: y,
+        overshoot: Math.max(0, (maxY - 1) * 100),
+        time63: time63
+    };
+}
+    const r1 = 0.1;
+    const r2 = 10;
+
+    const test1 = simulate(9, 0);
+    const test2 = simulate(9, 0);
+    const test3 = simulate(1, 1);
+    const test4 = simulate(1, 1);
+    const test5 = simulate(9, 5);
+
+    const simulatedValues = [
+        1 / (1 + 9),
+        (1 - test2.finalY) * 100,
+        test3.overshoot,
+        test4.time63,
+        (1 - test5.finalY) * 100
+    ];
+
+    const expectedValues = [r1, r2, 0, 1.000, 0];
+
+    simulatedValues.forEach(function(value, i) {
+        const cell = document.getElementById("sim" + (i + 1));
+        const result = document.getElementById("res" + (i + 1));
+
+        cell.textContent = value === null ? "N/A" : value.toFixed(3);
+
+        const tolerance = i === 0 ? 0.001 : 0.1;
+        const passed = value !== null &&
+            Math.abs(value - expectedValues[i]) <= tolerance;
+
+        result.textContent = passed ? "PASS" : "FAIL";
+        result.className = passed ? "pass" : "fail";
+    });
+}      
+        runValidation();
+        showQuestions();
+
+document.getElementById("checkAnswers").addEventListener("click", checkAnswers);
+        const prediction = document.getElementById("prediction");
+const predictionFeedback = document.getElementById("predictionFeedback");
+
+        
+    </script>
+
+</body>
+</html>
