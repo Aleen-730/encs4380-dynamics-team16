@@ -72,3 +72,8 @@ I worked on the implementation of Module 4, including the sensor guessing interf
 - **Second-order plant:** Initially tried Explicit Euler, but it gave inaccurate results for some slider values.
 - Tried reducing the time step (`dt`) to improve accuracy. The results improved in some cases, but the method still failed in others.
 - Therefore, switched to Semi-implicit Euler for the second-order plant, updating the velocity before the output.
+
+ P4 – tuning challenge
+ Simulates a hidden random first-order plant, while allowing the user to tune Kp, Ki, and Kd.
+Evaluates the PID response based on overshoot, settling time, and steady-state error, then gives a PASS/FAIL score.
+ 
