@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PID Tuning Challenge</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f7f0f5;color:#29202a}h1{margin:0;color:#f7f0f5}h2{margin:0 0 8px;color:#183a73}button,input{font:inherit}.page{max-width:1000px;margin:auto;padding:18px}.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px #00000012}.top{background:#183a73;text-align:center}.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.control label{display:block;font-weight:bold;margin-bottom:5px}.row{display:flex;gap:8px;align-items:center}.row input[type=range]{flex:1}.num{width:80px;padding:6px;border:1px solid #ccc;border-radius:6px}.specs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.spec{background:#faf5f8;padding:10px;border-radius:8px}.value{font-weight:bold;color:#183a73}.actions{text-align:center}.btn{border:0;border-radius:8px;padding:10px 18px;background:#183a73;color:#fff;cursor:pointer;margin:4px}.btn:hover{background:#183a73}.secondary{background:#183a73}.results{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{padding:10px;background:#faf5f8;border-radius:8px}.metric b{display:block;margin-bottom:4px}.pass{color:#16803c;font-weight:bold}.fail{color:#c62828;font-weight:bold}.score{text-align:center;font-size:24px;font-weight:bold;color:#183a73}.hidden{display:none}.plant{font-size:14px;color:#555}.challenge{background:#fff3cd;border-left:5px solid #e0a800}.status{font-size:18px;font-weight:bold;margin-top:8px}@media(max-width:700px){.controls,.specs,.results{grid-template-columns:1fr}.page{padding:10px}.card{padding:12px}}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="card top">
+<h1>PID Tuning Challenge</h1>
+<p>Choose the PID gains and tune the hidden plant to satisfy all requirements.</p>
+</div>
+
+<div class="card challenge">
+<h2>Challenge</h2>
+<p>The plant is randomly generated and hidden. Tune <b>Kp</b>, <b>Ki</b>, and <b>Kd</b> until all specifications pass.</p>
+<div class="specs">
+<div class="spec">Overshoot ≤ <span class="value">10%</span></div>
+<div class="spec">Settling Time ≤ <span class="value">2 s</span></div>
+<div class="spec">Steady-State Error ≤ <span class="value">1%</span></div>
+</div>
+</div>
+
+<div class="card">
+<h2>PID Gains</h2>
+<div class="controls">
+<div class="control">
+<label>Kp</label>
+<div class="row"><input id="kp" type="range" min="0" max="50" step="0.1" value="1"><input id="kpNum" class="num" type="number" min="0" max="50" step="0.1" value="1"></div>
+</div>
+<div class="control">
+<label>Ki</label>
+<div class="row"><input id="ki" type="range" min="0" max="50" step="0.1" value="1"><input id="kiNum" class="num" type="number" min="0" max="50" step="0.1" value="1"></div>
+</div>
+<div class="control">
+<label>Kd</label>
+<div class="row"><input id="kd" type="range" min="0" max="10" step="0.01" value="0"><input id="kdNum" class="num" type="number" min="0" max="10" step="0.01" value="0"></div>
+</div>
+</div>
+</div>
+
+<div class="card actions">
+<button class="btn" onclick="checkPID()">Check PID</button>
+<button class="btn secondary" onclick="newChallenge()">New Challenge</button>
+<div id="status" class="status"></div>
+</div>
+
+<div class="card">
+<h2>Results</h2>
+<div class="results">
+<div class="metric"><b>Rise Time</b><span id="rise">-</span></div>
+<div class="metric"><b>Overshoot</b><span id="overshoot">-</span></div>
+<div class="metric"><b>Settling Time</b><span id="settling">-</span></div>
+<div class="metric"><b>Steady-State Error</b><span id="sse">-</span></div>
+</div>
+<div id="score" class="score"></div>
+</div>
+
+<div class="card">
+<h2>Response</h2>
+<div id="plot" style="width:100%;height:430px"></div>
+</div>
+
+<div id="plantCard" class="card hidden">
+<h2>Hidden Plant</h2>
+<p class="plant" id="plantInfo"></p>
+</div>
+</div>
+
+<script>
+let plant={K:0,tau:0};
+
+const specs={overshoot:10,settling:2,sse:1};
+const DT=.001,T_END=10;
+
+function rand(a,b){return a+Math.random()*(b-a)}
+function newChallenge(){
+plant.K=rand(.5,5);
+plant.tau=rand(.3,3);
+document.getElementById("plantCard").classList.add("hidden");
+document.getElementById("status").textContent="";
+document.getElementById("score").textContent="";
+["rise","overshoot","settling","sse"].forEach(x=>document.getElementById(x).textContent="-");
+document.getElementById("plot").innerHTML="";
+}
+function link(a,b){
+a.addEventListener("input",()=>b.value=a.value);
+b.addEventListener("input",()=>a.value=b.value);
+}
+link(document.getElementById("kp"),document.getElementById("kpNum"));
+link(document.getElementById("ki"),document.getElementById("kiNum"));
+link(document.getElementById("kd"),document.getElementById("kdNum"));
+
+function simulate(Kp,Ki,Kd){
+let n=Math.floor(T_END/DT)+1,t=[],y=[],u=[],integral=0,x=0;
+for(let i=0;i<n;i++){
+let time=i*DT,err=1-x;
+let control=(Kp*err+Ki*integral+Kd*x/plant.tau)/(1+Kd*plant.K/plant.tau);
+t.push(time);y.push(x);u.push(control);
+let f=z=>(plant.K*control-z)/plant.tau;
+let k1=f(x),k2=f(x+k1*DT/2),k3=f(x+k2*DT/2),k4=f(x+k3*DT);
+x+=DT*(k1+2*k2+2*k3+k4)/6;
+integral+=err*DT;
+}
+return{t,y,u};
+}
+
+function metrics(t,y){
+let max=Math.max(...y),overshoot=Math.max(0,(max-1)*100);
+let rise10=t[y.findIndex(v=>v>=.1)];
+let rise90=t[y.findIndex(v=>v>=.9)];
+let rise=rise10>=0&&rise90>=0?rise90-rise10:Infinity;
+let last=t.length-1,settling=Infinity;
+for(let i=0;i<y.length;i++){
+let stable=true;
+for(let j=i;j<y.length;j++)if(Math.abs(y[j]-1)>.02){stable=false;break}
+if(stable){settling=t[i];break}
+}
+let sse=Math.abs(1-y[last])*100;
+return{rise,overshoot,settling,sse};
+}
+
+function fmt(v){
+return Number.isFinite(v)?v.toFixed(3):"N/A";
+}
+
+function checkPID(){
+let Kp=+document.getElementById("kpNum").value;
+let Ki=+document.getElementById("kiNum").value;
+let Kd=+document.getElementById("kdNum").value;
+let sim=simulate(Kp,Ki,Kd),m=metrics(sim.t,sim.y);
+
+document.getElementById("rise").textContent=fmt(m.rise)+" s";
+document.getElementById("overshoot").textContent=fmt(m.overshoot)+" %";
+document.getElementById("settling").textContent=fmt(m.settling)+" s";
+document.getElementById("sse").textContent=fmt(m.sse)+" %";
+
+let p1=m.overshoot<=specs.overshoot;
+let p2=m.settling<=specs.settling;
+let p3=m.sse<=specs.sse;
+let passed=[p1,p2,p3].filter(Boolean).length;
+
+document.getElementById("status").innerHTML=
+"Overall: <span class='"+(passed===3?"pass":"fail")+"'>"+(passed===3?"PASS":"FAIL")+"</span>";
+
+document.getElementById("score").textContent="Score: "+passed+"/3";
+
+plotResponse(sim.t,sim.y);
+
+document.getElementById("plantInfo").textContent=
+"G(s) = "+plant.K.toFixed(3)+" / ("+plant.tau.toFixed(3)+"s + 1)";
+document.getElementById("plantCard").classList.remove("hidden");
+}
+
+function plotResponse(t,y){
+Plotly.newPlot("plot",[
+{x:t,y:y,name:"Output",mode:"lines"},
+{x:[0,T_END],y:[1,1],name:"Setpoint",mode:"lines",line:{dash:"dash"}}
+],{
+margin:{t:20,r:20,b:50,l:50},
+xaxis:{title:"Time (s)"},
+yaxis:{title:"Output"},
+legend:{orientation:"h"}
+},{responsive:true});
+}
+
+newChallenge();
+</script>
+</body>
+</html>
