@@ -8,7 +8,7 @@ Aya Suliman 1231411: Module 2
 
 Mirna Musallam 1230042: Module 3
 
-Heba Madi 1231286: Module 4
+Heba Madi 1231286: Module 4,  P3 - Digital PID
 
 Homework 1 – Dynamics
 
@@ -76,4 +76,6 @@ I worked on the implementation of Module 4, including the sensor guessing interf
  P4 – tuning challenge
  Simulates a hidden random first-order plant, while allowing the user to tune Kp, Ki, and Kd.
 Evaluates the PID response based on overshoot, settling time, and steady-state error, then gives a PASS/FAIL score.
+
+
  
