@@ -1,436 +1,771 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My System – Micromouse Speed Loop</title>
-<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-<style>
-  body{margin:0;background:#eef1f6;font-family:Georgia,"Times New Roman",serif;color:#1d2330}
-  header{background:#183a73;color:#fff;text-align:center;padding:14px;font-size:24px;font-weight:bold;position:relative}
-  header a{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#fff;font-size:15px;font-weight:normal;text-decoration:none}
-  .page{max-width:1100px;margin:auto;padding:14px;display:flex;flex-direction:column;gap:14px}
-  .card{background:#fff;border:1px solid #d5dbe6;border-radius:8px;overflow:hidden}
-  .card h3{margin:0;background:#183a73;color:#fff;padding:9px 12px;font-size:17px}
-  .card h4{margin:0;background:#c9d9ef;padding:9px;text-align:center;font-size:17px}
-  .body{padding:12px;line-height:1.5}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
-  input[type=range]{width:100%}
-  input[type=number]{width:90px;padding:5px;font-family:inherit}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th{background:#dfe7f3}
-  th,td{border:1px solid #d5dbe6;padding:7px;text-align:center}
-  td.left{text-align:left}
-  .plot{height:280px}
-  .note{font-size:13px;color:#555;margin:8px 0 0}
-  .tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:bold;color:#fff;vertical-align:middle}
-  .t-list{background:#2d7d46}.t-assumed{background:#c77700}.t-calc{background:#183a73}
-  .pass{color:green;font-weight:bold}.fail{color:#c00;font-weight:bold}.warn{color:#b36b00;font-weight:bold}
-  .eq{background:#f3f6fb;border-left:4px solid #183a73;padding:8px 12px;margin:8px 0;font-family:"Courier New",monospace;font-size:14px;overflow-x:auto}
-  button{background:#183a73;color:#fff;border:0;border-radius:6px;padding:6px 14px;font-family:inherit;cursor:pointer}
-  pre{background:#101827;color:#e6edf7;padding:12px;border-radius:6px;overflow:auto;font-size:13px;line-height:1.4;margin:8px 0 0;max-height:460px}
-  .codebar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-  .box{background:#fff3cd;border-left:5px solid #e0a800;padding:10px 12px;border-radius:4px}
-  @media (max-width:800px){.grid2{grid-template-columns:1fr}header{font-size:19px;padding-top:36px}header a{top:12px;transform:none}}
-</style>
-</head>
-<body>
-<header><a href="../index.html">← Home</a>My System – Micromouse Speed Loop</header>
-<!-- NOTE: put this file in the /control folder, next to p1-pid.html and p3.html -->
-
-<div class="page">
-
-  <!-- ============ PART 1 ============ -->
-  <div class="card"><h3>1. Plant Model and Where the Numbers Come From</h3><div class="body">
-    <p class="note" style="margin:0 0 8px">Tags: <span class="tag t-list">from listing</span> taken from the seller's page, <span class="tag t-assumed">assumed</span> a guess to be replaced by a measured value, <span class="tag t-calc">calculated</span> computed on this page.</p>
-    <p>Plant: the speed of one drive wheel motor (JGA12-N20 gear motor with Hall encoder). Input = PWM command u in %, output = wheel speed &omega; in rad/s. We model it as a first-order system:</p>
-    <div class="eq">G(s) = K / (&tau;s + 1)</div>
-    <div class="grid2">
-      <div>
-        <table>
-          <tr><th>Quantity</th><th>Value</th><th>Source</th></tr>
-          <tr><td class="left">K</td><td><b id="kShow"></b> rad/s per % PWM</td><td><span class="tag t-list">from listing</span></td></tr>
-          <tr><td class="left">&tau;</td><td><b id="tauShow"></b> s</td><td><span class="tag t-assumed">assumed</span></td></tr>
-          <tr><td class="left">PWM range</td><td>0 to 100 %</td><td>homework rule</td></tr>
-        </table>
-        <p class="note">How K was calculated: the listing gives 500 RPM at the rated 6 V (no load).<br>
-        500 RPM × 2&pi; / 60 = 52.36 rad/s at 100 % PWM, so K = 52.36 / 100 = 0.5236 rad/s per 1 % PWM.</p>
-        <p class="note">&tau; = 0.1 s is a guess. Small N20 motors are usually fast, so &tau; is expected to be well under 1 s. It must be measured.</p>
-      </div>
-      <div>
-        <table>
-          <tr><th>Part</th><th>Detail</th></tr>
-          <tr><td class="left">Motor</td><td>JGA12-N20, 500 RPM, 6 V, Hall encoder AB 7 PPR (before the gearbox)</td></tr>
-          <tr><td class="left">Wheel</td><td>45 mm diameter</td></tr>
-          <tr><td class="left">Driver</td><td>DRV8833</td></tr>
-          <tr><td class="left">Controller</td><td>ESP32</td></tr>
-          <tr><td class="left">Power (to be confirmed by the team)</td><td>9 V Li-ion battery, LM2596 set to 6 V for the motors, so that 100 % PWM = 6 V</td></tr>
-        </table>
-      </div>
-    </div>
-    <p><b>Calculated from the model:</b> top speed at 100 % PWM (no load) = <b id="vTop"></b> m/s. The test setpoint of <b id="rShow"></b> rad/s is <b id="vSet"></b> m/s (wheel radius 22.5 mm).</p>
-    <p class="note">Source for K: the seller's AliExpress listing for the JGA12-N20 motor with encoder (500 RPM version, 6 V). The listing only gives the no-load speed. With the mouse's weight, the real K will be lower.</p>
-  </div></div>
-
-  <!-- ============ PART 2 ============ -->
-  <div class="card"><h3>2. The Spec and Why It Matters</h3><div class="body">
-    <table>
-      <tr><th>Requirement</th><th>Limit</th><th>Why it matters for the micromouse</th></tr>
-      <tr><td class="left">Overshoot</td><td>≤ <span id="specOS"></span> %</td><td class="left">The wheel must not speed past the target, or the mouse hits the wall in a short maze cell.</td></tr>
-      <tr><td class="left">Settling time (2 %)</td><td>≤ <span id="specTs"></span> s</td><td class="left">A fast speed loop lets the mouse accelerate and turn in a short distance.</td></tr>
-      <tr><td class="left">Steady-state error</td><td>≤ <span id="specSS"></span> %</td><td class="left">Two wheels at the same speed mean the mouse drives straight, and distance by encoder stays accurate.</td></tr>
-      <tr><td class="left">Damping ratio &zeta;</td><td>0.6 to 0.8</td><td class="left">Practical range from the lecture: fast, with small overshoot.</td></tr>
-      <tr><td class="left">PWM command</td><td>0 to 100 %</td><td class="left">The driver cannot give more than 100 %. If u hits the limit, the controller is not working as designed.</td></tr>
-    </table>
-  </div></div>
-
-  <!-- ============ PART 3 ============ -->
-  <div class="card"><h3>3. Controller Design (PI, digital)</h3><div class="body">
-    <p>For the plant K/(&tau;s + 1) with a PI controller the closed loop is second order (same formulas as validation check 2 of Homework 2):</p>
-    <div class="eq">&omega;n = &radic;(K&middot;Ki / &tau;)  &nbsp;&nbsp;  &zeta; = (1 + K&middot;Kp) / (2&radic;(&tau;&middot;K&middot;Ki))</div>
-    <p>We choose &zeta; and &omega;n, then solve for the gains:</p>
-    <div class="eq">Ki = &omega;n&sup2; &middot; &tau; / K  &nbsp;&nbsp;  Kp = (2&zeta;&omega;n&tau; &minus; 1) / K</div>
-
-    <div class="controls">
-      <div><b>&zeta;:</b> <span id="zetaVal"></span><input type="range" id="zeta" min="0.3" max="1.2" step="0.05"></div>
-      <div><b>&omega;n (rad/s):</b> <span id="wnVal"></span><input type="range" id="wn" min="3" max="40" step="0.5"></div>
-      <div><b>Sampling time Ts (s):</b> <span id="TsVal"></span><input type="range" id="Ts" min="0.005" max="0.1" step="0.005"></div>
-      <div><b>Setpoint r (rad/s):</b> <span id="rVal"></span><input type="range" id="r" min="1" max="50" step="1"></div>
-      <div><b>K</b> (rad/s per %): <input type="number" id="K" step="0.0001"></div>
-      <div><b>&tau;</b> (s): <input type="number" id="tau" step="0.001"></div>
-      <div><label><input type="checkbox" id="aw"> Anti-windup</label></div>
-    </div>
-    <p class="note">After the PWM step test, type the measured K and &tau; in the two boxes. The gains and the whole page update.</p>
-
-    <table style="margin-top:10px">
-      <tr><th>Kp</th><th>Ki</th><th>&zeta; (check)</th><th>&omega;n (check)</th><th>Design status</th></tr>
-      <tr><td id="gKp"></td><td id="gKi"></td><td id="gZ"></td><td id="gW"></td><td id="gStatus"></td></tr>
-    </table>
-  </div></div>
-
-  <div class="card"><h3>Simulated Response (digital PID, RK4 plant)</h3><div class="body">
-    <table>
-      <tr><th>Rise time</th><th>Overshoot</th><th>Settling time</th><th>Steady-state error</th><th>Peak u</th><th>Lowest u</th></tr>
-      <tr><td id="mRise"></td><td id="mOS"></td><td id="mTs"></td><td id="mSS"></td><td id="mUmax"></td><td id="mUmin"></td></tr>
-    </table>
-    <table style="margin-top:10px">
-      <tr><th>Overshoot</th><th>Settling time</th><th>Steady-state error</th><th>PWM within 0–100 %</th><th>&zeta; in 0.6–0.8</th><th>Overall</th></tr>
-      <tr><td id="pOS"></td><td id="pTs"></td><td id="pSS"></td><td id="pU"></td><td id="pZ"></td><td id="pAll"></td></tr>
-    </table>
-    <div class="grid2" style="margin-top:12px">
-      <div class="card"><h4>Speed &omega; vs Setpoint</h4><div id="yPlot" class="plot"></div></div>
-      <div class="card"><h4>PWM command u (%)</h4><div id="uPlot" class="plot"></div></div>
-    </div>
-    <p class="note">The simulation uses the same digital PID formula as the Arduino code: u[k] = Kp&middot;e[k] + Ki&middot;Ts&middot;&Sigma;e[j] + Kd&middot;(e[k] &minus; e[k&minus;1])/Ts, with Kd = 0. Between samples u is held constant and the plant is solved with RK4.</p>
-  </div></div>
-
-  <div class="card"><h3>Generated Arduino Code (ESP32)</h3><div class="body">
-    <div class="codebar">
-      <span class="note" style="margin:0">Uses the final gains above. Pins and encoder counts per turn are placeholders to fill in.</span>
-      <button id="copyBtn" onclick="copyCode()">Copy code</button>
-    </div>
-    <pre id="code"></pre>
-  </div></div>
-
-</div>
-<script>
-//CORE-START
-var DT = 0.001   // RK4 step for the plant (s)
-
-// Run the closed loop: digital PID every Ts, plant simulated with RK4 between samples
-function run(p, Ts){
-  var sub = Math.max(1, Math.round(Ts / DT))
-  var dt = Ts / sub
-  var N = Math.round(p.T / Ts)
-  var y = 0, integral = 0, ePrev = 0, diverged = false
-  var tF = [0], yF = [0]          // fine points (every RK4 step)
-  var tS = [], uS = [], yS = []   // one point per sample
-
-  function f(z, u){ return (p.K*u - z) / p.tau }
-
-  for (var k = 0; k < N; k++){
-    var e = p.r - y
-    var integralNew = integral + e*Ts
-    var u = p.Kp*e + p.Ki*integralNew + p.Kd*(e - ePrev)/Ts
-    var uSat = u
-    if (p.limit) uSat = Math.min(Math.max(u, Math.min(p.umin, p.umax)), Math.max(p.umin, p.umax))
-    var saturated = (uSat !== u)
-    if (!(p.aw && saturated)) integral = integralNew
-    ePrev = e
-    tS.push(k*Ts); uS.push(uSat); yS.push(y)
-
-    for (var s = 0; s < sub; s++){
-      var k1 = f(y, uSat), k2 = f(y + dt*k1/2, uSat)
-      var k3 = f(y + dt*k2/2, uSat), k4 = f(y + dt*k3, uSat)
-      y += dt/6 * (k1 + 2*k2 + 2*k3 + k4)
-      tF.push((k*sub + s + 1)*dt); yF.push(y)
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My System – Micromouse Speed Loop</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: #eef1f6;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #1d2330
     }
-    if (!isFinite(y) || Math.abs(y) > 1e9){ diverged = true; break }
-  }
-  tS.push(N*Ts); uS.push(uS[uS.length-1])   // close the last stair
-  return {tF:tF, yF:yF, tS:tS, uS:uS, yS:yS, diverged:diverged, Ts:Ts}
-}
 
-// Metrics: rise time (10-90%), overshoot, settling time (2%), steady-state error, IAE
-function metrics(sim, p){
-  var y = sim.yF, t = sim.tF, n = y.length
-  var out = {rise:NaN, overshoot:NaN, settling:NaN, sse:NaN, iae:NaN, status:"settled"}
+    header {
+      background: #183a73;
+      color: #fff;
+      text-align: center;
+      padding: 14px;
+      font-size: 24px;
+      font-weight: bold;
+      position: relative
+    }
 
-  // IAE: integral of |r - y| dt
-  var iae = 0
-  for (var i = 1; i < n; i++) iae += Math.abs(p.r - y[i]) * (t[i] - t[i-1])
-  out.iae = iae
+    header a {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #fff;
+      font-size: 15px;
+      font-weight: normal;
+      text-decoration: none
+    }
 
-  var maxAbs = 0
-  for (i = 0; i < n; i++) if (Math.abs(y[i]) > maxAbs) maxAbs = Math.abs(y[i])
-  if (sim.diverged || maxAbs > 100*Math.max(Math.abs(p.r), 1e-6)){ out.status = "unstable"; return out }
+    .page {
+      max-width: 1100px;
+      margin: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
 
-  // final value = average of the last 5% of the run
-  var from = Math.floor(n*0.95), sum = 0
-  for (i = from; i < n; i++) sum += y[i]
-  var final = sum / (n - from)
-  out.sse = Math.abs(p.r - final)
-  if (Math.abs(final) < 1e-9){ out.status = "no response"; return out }
+    .card {
+      background: #fff;
+      border: 1px solid #d5dbe6;
+      border-radius: 8px;
+      overflow: hidden
+    }
 
-  var t10 = null, t90 = null, peak = 0, lastOut = -1
-  for (i = 0; i < n; i++){
-    var s = y[i] / final
-    if (t10 === null && s >= 0.1) t10 = t[i]
-    if (t90 === null && s >= 0.9) t90 = t[i]
-    if (s > peak) peak = s
-    if (Math.abs(s - 1) > 0.02) lastOut = i
-  }
-  out.overshoot = Math.max(peak - 1, 0) * 100
-  if (t10 !== null && t90 !== null) out.rise = t90 - t10
-  if (lastOut >= 0 && t[lastOut] > 0.9*p.T){ out.status = "oscillating"; return out }
-  out.settling = lastOut < 0 ? 0 : t[lastOut + 1]
-  return out
-}
-//CORE-END
+    .card h3 {
+      margin: 0;
+      background: #183a73;
+      color: #fff;
+      padding: 9px 12px;
+      font-size: 17px
+    }
 
-// ---------- my design settings (change these here) ----------
-var S = {
-  K: 0.5236,     // rad/s per % PWM = (500 RPM * 2*pi/60)/100. Source: seller's listing (no-load, 6 V)
-  tau: 0.1,      // s. ASSUMED. Replace with the measured value after the PWM step test
-  umin: 0, umax: 100,       // PWM limit in %
-  r: 20,         // setpoint in rad/s
-  Ts: 0.01,      // sampling time in s
-  zeta: 0.7, wn: 15,        // design choice
-  aw: true,
-  T: 3,          // simulation time in s
-  spec: {overshoot: 10, settling: 0.5, sse: 1},
-  wheelR: 0.0225 // wheel radius in m (45 mm diameter)
-}
+    .card h4 {
+      margin: 0;
+      background: #c9d9ef;
+      padding: 9px;
+      text-align: center;
+      font-size: 17px
+    }
 
-function num(v, d){ return Number.isFinite(v) ? v.toFixed(d) : "–" }
-function el(id){ return document.getElementById(id) }
+    .body {
+      padding: 12px;
+      line-height: 1.5
+    }
 
-// PI design from zeta and wn (formulas in Part 3)
-function design(K, tau, zeta, wn){
-  return {Ki: wn*wn*tau / K, Kp: (2*zeta*wn*tau - 1) / K}
-}
-// zeta and wn of the closed loop for given gains (check)
-function checkZW(K, tau, Kp, Ki){
-  return {wn: Math.sqrt(K*Ki/tau), zeta: (1 + K*Kp) / (2*Math.sqrt(tau*K*Ki))}
-}
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px
+    }
 
-function plantParams(K, tau, g){
-  return {K:K, tau:tau, Kp:g.Kp, Ki:g.Ki, Kd:0, r:S.r, T:S.T,
-          limit:true, umin:S.umin, umax:S.umax, aw:S.aw}
-}
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px
+    }
 
-// Analyse one case: returns metrics, free (unlimited) u range, zeta
-function analyse(K, tau, g, Ts){
-  var p = plantParams(K, tau, g)
-  var sim = run(p, Ts)
-  var m = metrics(sim, p)
-  var free = run(Object.assign({}, p, {limit:false}), Ts)
-  var uHi = Math.max.apply(null, free.uS.slice(0, -1)), uLo = Math.min.apply(null, free.uS.slice(0, -1))
-  var zw = checkZW(K, tau, g.Kp, g.Ki)
-  return {sim:sim, m:m, uHi:uHi, uLo:uLo, zw:zw}
-}
+    input[type=range] {
+      width: 100%
+    }
 
-function specOK(a){
-  var m = a.m
-  var os = Number.isFinite(m.overshoot) && m.overshoot <= S.spec.overshoot
-  var ts = m.status == "settled" && m.settling <= S.spec.settling
-  var ss = Number.isFinite(m.sse) && (m.sse / Math.abs(S.r) * 100) <= S.spec.sse
-  var u = a.uHi <= S.umax && a.uLo >= S.umin
-  return {os:os, ts:ts, ss:ss, u:u, all:os && ts && ss && u}
-}
-function yn(ok){ return "<span class='" + (ok ? "pass" : "fail") + "'>" + (ok ? "PASS" : "FAIL") + "</span>" }
+    input[type=number] {
+      width: 90px;
+      padding: 5px;
+      font-family: inherit
+    }
 
-// ---------- Arduino code ----------
-function cf(x){ var s = String(+Number(x).toFixed(4)); if (s.indexOf(".") < 0) s += ".0"; return s + "f" }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px
+    }
 
-function makeCode(g){
-  var tsMs = Math.round(S.Ts * 1000)
-  var L = []
-  L.push("// Speed loop for ONE wheel (ESP32 + DRV8833). Made by the My System page.")
-  L.push("// u[k] = Kp*e[k] + Ki*Ts*sum(e)      (Kd = 0, PI controller)")
-  L.push("// Plant used for the design: K = " + S.K + " rad/s per % PWM, tau = " + S.tau + " s")
-  L.push("")
-  L.push("const float Kp = " + cf(g.Kp) + ";")
-  L.push("const float Ki = " + cf(g.Ki) + ";")
-  L.push("const unsigned long TS_MS = " + tsMs + ";   // sampling time in ms")
-  L.push("const float Ts = TS_MS / 1000.0f;")
-  L.push("const float U_MAX = " + cf(S.umax) + ";     // % PWM")
-  L.push("const float U_MIN = " + cf(S.umin) + ";")
-  L.push("")
-  L.push("// TODO: fill in your pins and your encoder numbers")
-  L.push("const int PIN_IN1 = 25;          // DRV8833 IN1 (PWM)")
-  L.push("const int PIN_IN2 = 26;          // DRV8833 IN2 (kept LOW for forward)")
-  L.push("const int PIN_ENC_A = 34;")
-  L.push("const int PIN_ENC_B = 35;")
-  // FIXED: the interrupt below is only on channel A (CHANGE = 2 edges), so we get 2 counts per pulse, not 4
-  L.push("const float COUNTS_PER_REV = 7 * 2 * 1;   // 7 PPR x 2 edges (channel A only) x GEAR RATIO (put the ratio instead of 1)")
-  L.push("const int PWM_FREQ = 20000;      // Hz")
-  L.push("const int PWM_BITS = 10;         // duty 0..1023")
-  L.push("")
-  L.push("float setpoint = " + cf(S.r) + ";      // rad/s")
-  L.push("float integral = 0.0f;                 // = Ts * sum of errors")
-  L.push("volatile long encoderCount = 0;")
-  L.push("long lastCount = 0;")
-  L.push("unsigned long lastTick = 0;")
-  L.push("")
-  L.push("void IRAM_ATTR onEncoderA() {")
-  L.push("  // TODO: check the direction on your wheel (swap + and - if the speed is negative)")
-  L.push("  if (digitalRead(PIN_ENC_A) == digitalRead(PIN_ENC_B)) encoderCount++; else encoderCount--;")
-  L.push("}")
-  L.push("")
-  L.push("void writePWM(float u) {   // u in % (0..100)")
-  L.push("  int duty = (int)(u * ((1 << PWM_BITS) - 1) / 100.0f);")
-  L.push("  ledcWrite(PIN_IN1, duty);   // Arduino-ESP32 core 3.x. On core 2.x use ledcSetup + ledcAttachPin")
-  L.push("  ledcWrite(PIN_IN2, 0);")
-  L.push("}")
-  L.push("")
-  L.push("void setup() {")
-  L.push("  Serial.begin(115200);")
-  L.push("  pinMode(PIN_ENC_A, INPUT);")
-  L.push("  pinMode(PIN_ENC_B, INPUT);")
-  L.push("  attachInterrupt(digitalPinToInterrupt(PIN_ENC_A), onEncoderA, CHANGE);")
-  L.push("  ledcAttach(PIN_IN1, PWM_FREQ, PWM_BITS);")
-  L.push("  ledcAttach(PIN_IN2, PWM_FREQ, PWM_BITS);")
-  L.push("  lastTick = millis();")
-  L.push("}")
-  L.push("")
-  L.push("void loop() {")
-  L.push("  unsigned long now = millis();")
-  L.push("  if (now - lastTick < TS_MS) return;   // wait for the next sample")
-  L.push("  lastTick += TS_MS;")
-  L.push("")
-  L.push("  // speed in rad/s from the counts in this sample")
-  L.push("  noInterrupts(); long c = encoderCount; interrupts();")
-  L.push("  float y = (c - lastCount) * 2.0f * PI / (COUNTS_PER_REV * Ts);")
-  L.push("  lastCount = c;")
-  L.push("")
-  L.push("  float e = setpoint - y;")
-  L.push("  float integralNew = integral + e * Ts;")
-  L.push("  float u = Kp * e + Ki * integralNew;")
-  L.push("  float uSat = constrain(u, U_MIN, U_MAX);")
-  if (S.aw){
-    L.push("  if (uSat == u) integral = integralNew;   // anti-windup: do not integrate while saturated")
-  } else {
-    L.push("  integral = integralNew;                  // anti-windup is OFF")
-  }
-  L.push("")
-  L.push("  writePWM(uSat);")
-  L.push("}")
-  return L.join("\n")
-}
+    th {
+      background: #dfe7f3
+    }
 
-function copyCode(){
-  var text = el("code").textContent, btn = el("copyBtn")
-  function done(){ btn.textContent = "Copied!"; setTimeout(function(){ btn.textContent = "Copy code" }, 1500) }
-  function fallback(){
-    var ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select()
-    try { document.execCommand("copy"); done() } catch(err){ btn.textContent = "Select and copy by hand" }
-    document.body.removeChild(ta)
-  }
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback)
-  else fallback()
-}
+    th,
+    td {
+      border: 1px solid #d5dbe6;
+      padding: 7px;
+      text-align: center
+    }
 
-// ---------- show everything ----------
-function update(){
-  var g = design(S.K, S.tau, S.zeta, S.wn)
-  var a = analyse(S.K, S.tau, g, S.Ts)
-  var m = a.m, ok = specOK(a)
-  var zOK = a.zw.zeta >= 0.6 - 1e-9 && a.zw.zeta <= 0.8 + 1e-9
+    td.left {
+      text-align: left
+    }
 
-  el("kShow").textContent = S.K
-  el("tauShow").textContent = S.tau
-  el("rShow").textContent = S.r
-  el("vTop").textContent = num(S.K * 100 * S.wheelR, 3)
-  el("vSet").textContent = num(S.r * S.wheelR, 3)
-  el("specOS").textContent = S.spec.overshoot
-  el("specTs").textContent = S.spec.settling
-  el("specSS").textContent = S.spec.sse
+    .plot {
+      height: 280px
+    }
 
-  el("zetaVal").textContent = S.zeta
-  el("wnVal").textContent = S.wn
-  el("TsVal").textContent = S.Ts.toFixed(3)
-  el("rVal").textContent = S.r
+    .note {
+      font-size: 13px;
+      color: #555;
+      margin: 8px 0 0
+    }
 
-  el("gKp").textContent = num(g.Kp, 3)
-  el("gKi").textContent = num(g.Ki, 3)
-  el("gZ").textContent = num(a.zw.zeta, 3)
-  el("gW").textContent = num(a.zw.wn, 2) + " rad/s"
-  el("gStatus").innerHTML = g.Kp < 0
-    ? "<span class='fail'>Kp &lt; 0: choose a larger &omega;n or &zeta;</span>"
-    : "<span class='pass'>gains valid</span>"
+    .tag {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #fff;
+      vertical-align: middle
+    }
 
-  el("mRise").textContent = Number.isFinite(m.rise) ? num(m.rise, 3) + " s" : "–"
-  el("mOS").textContent = Number.isFinite(m.overshoot) ? num(m.overshoot, 1) + " %" : "–"
-  el("mTs").textContent = m.status == "settled" ? num(m.settling, 3) + " s" : m.status
-  el("mSS").textContent = Number.isFinite(m.sse) ? num(m.sse / Math.abs(S.r) * 100, 3) + " %" : "–"
-  el("mUmax").textContent = num(a.uHi, 1) + " %"
-  el("mUmin").textContent = num(a.uLo, 1) + " %"
+    .t-list {
+      background: #2d7d46
+    }
 
-  el("pOS").innerHTML = yn(ok.os)
-  el("pTs").innerHTML = yn(ok.ts)
-  el("pSS").innerHTML = yn(ok.ss)
-  el("pU").innerHTML = yn(ok.u)
-  el("pZ").innerHTML = yn(zOK)
-  el("pAll").innerHTML = yn(ok.all && zOK)
+    .t-assumed {
+      background: #c77700
+    }
 
-  plot(a)
-  el("code").textContent = makeCode(g)
-}
+    .t-calc {
+      background: #183a73
+    }
 
-function plot(a){
-  var sim = a.sim
-  var every = Math.max(1, Math.ceil(sim.tF.length / 1500)), tt = [], yy = []
-  for (var i = 0; i < sim.tF.length; i += every){ tt.push(sim.tF[i]); yy.push(sim.yF[i]) }
-  var opt = {responsive:true, displayModeBar:false}
-  var lay = {margin:{l:50, r:10, t:10, b:40}, xaxis:{title:"Time (s)"}, legend:{orientation:"h", y:-0.3}}
-  Plotly.react("yPlot", [
-    {x:tt, y:yy, name:"Speed", mode:"lines"},
-    {x:[0, S.T], y:[S.r, S.r], name:"Setpoint", mode:"lines", line:{dash:"dash"}}
-  ], Object.assign({}, lay, {yaxis:{title:"rad/s"}}), opt)
-  Plotly.react("uPlot", [
-    {x:sim.tS, y:sim.uS, name:"u", mode:"lines", line:{shape:"hv"}},
-    {x:[0, S.T], y:[S.umax, S.umax], name:"limit", mode:"lines", line:{dash:"dash", color:"#c00"}},
-    {x:[0, S.T], y:[S.umin, S.umin], name:"limit", mode:"lines", line:{dash:"dash", color:"#c00"}, showlegend:false}
-  ], Object.assign({}, lay, {yaxis:{title:"% PWM"}}), opt)
-}
+    .pass {
+      color: green;
+      font-weight: bold
+    }
 
-// ---------- controls ----------
-function bind(id, key){
-  el(id).value = S[key]
-  el(id).oninput = function(){
-    var v = Number(this.value)
-    if (!Number.isFinite(v) || ((id == "K" || id == "tau") && v <= 0)) return
-    S[key] = v
+    .fail {
+      color: #c00;
+      font-weight: bold
+    }
+
+    .warn {
+      color: #b36b00;
+      font-weight: bold
+    }
+
+    .eq {
+      background: #f3f6fb;
+      border-left: 4px solid #183a73;
+      padding: 8px 12px;
+      margin: 8px 0;
+      font-family: "Courier New", monospace;
+      font-size: 14px;
+      overflow-x: auto
+    }
+
+    button {
+      background: #183a73;
+      color: #fff;
+      border: 0;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-family: inherit;
+      cursor: pointer
+    }
+
+    pre {
+      background: #101827;
+      color: #e6edf7;
+      padding: 12px;
+      border-radius: 6px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.4;
+      margin: 8px 0 0;
+      max-height: 460px
+    }
+
+    .codebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .box {
+      background: #fff3cd;
+      border-left: 5px solid #e0a800;
+      padding: 10px 12px;
+      border-radius: 4px
+    }
+
+    @media (max-width:800px) {
+      .grid2 {
+        grid-template-columns: 1fr
+      }
+
+      header {
+        font-size: 19px;
+        padding-top: 36px
+      }
+
+      header a {
+        top: 12px;
+        transform: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header><a href="../index.html">← Home</a>My System – Micromouse Speed Loop</header>
+  
+
+  <div class="page">
+
+    
+    <div class="card">
+      <h3>1. Plant Model and Where the Numbers Come From</h3>
+      <div class="body">
+        <p class="note" style="margin:0 0 8px">Tags: <span class="tag t-list">from listing</span> taken from the
+          seller's page, <span class="tag t-assumed">assumed</span> a guess to be replaced by a measured value, <span
+            class="tag t-calc">calculated</span> computed on this page.</p>
+        <p>Plant: the speed of one drive wheel motor (JGA12-N20 gear motor with Hall encoder). Input = PWM command u in
+          %, output = wheel speed &omega; in rad/s. We model it as a first-order system:</p>
+        <div class="eq">G(s) = K / (&tau;s + 1)</div>
+        <div class="grid2">
+          <div>
+            <table>
+              <tr>
+                <th>Quantity</th>
+                <th>Value</th>
+                <th>Source</th>
+              </tr>
+              <tr>
+                <td class="left">K</td>
+                <td><b id="kShow"></b> rad/s per % PWM</td>
+                <td><span class="tag t-list">from listing</span></td>
+              </tr>
+              <tr>
+                <td class="left">&tau;</td>
+                <td><b id="tauShow"></b> s</td>
+                <td><span class="tag t-assumed">assumed</span></td>
+              </tr>
+              <tr>
+                <td class="left">PWM range</td>
+                <td>0 to 100 %</td>
+                <td>homework rule</td>
+              </tr>
+            </table>
+            <p class="note">How K was calculated: the listing gives 500 RPM at the rated 6 V (no load).<br>
+              500 RPM × 2&pi; / 60 = 52.36 rad/s at 100 % PWM, so K = 52.36 / 100 = 0.5236 rad/s per 1 % PWM.</p>
+            <p class="note">&tau; = 0.1 s is a guess. Small N20 motors are usually fast, so &tau; is expected to be well
+              under 1 s. It must be measured.</p>
+          </div>
+          <div>
+            <table>
+              <tr>
+                <th>Part</th>
+                <th>Detail</th>
+              </tr>
+              <tr>
+                <td class="left">Motor</td>
+                <td>JGA12-N20, 500 RPM, 6 V, Hall encoder AB 7 PPR (before the gearbox)</td>
+              </tr>
+              <tr>
+                <td class="left">Wheel</td>
+                <td>45 mm diameter</td>
+              </tr>
+              <tr>
+                <td class="left">Driver</td>
+                <td>DRV8833</td>
+              </tr>
+              <tr>
+                <td class="left">Controller</td>
+                <td>ESP32</td>
+              </tr>
+              <tr>
+                <td class="left">Power (to be confirmed by the team)</td>
+                <td>9 V Li-ion battery, LM2596 set to 6 V for the motors, so that 100 % PWM = 6 V</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <p><b>Calculated from the model:</b> top speed at 100 % PWM (no load) = <b id="vTop"></b> m/s. The test setpoint
+          of <b id="rShow"></b> rad/s is <b id="vSet"></b> m/s (wheel radius 22.5 mm).</p>
+        <p class="note">Source for K: the seller's AliExpress listing for the JGA12-N20 motor with encoder (500 RPM
+          version, 6 V). The listing only gives the no-load speed. With the mouse's weight, the real K will be lower.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="card">
+      <h3>2. The Spec and Why It Matters</h3>
+      <div class="body">
+        <table>
+          <tr>
+            <th>Requirement</th>
+            <th>Limit</th>
+            <th>Why it matters for the micromouse</th>
+          </tr>
+          <tr>
+            <td class="left">Overshoot</td>
+            <td>≤ <span id="specOS"></span> %</td>
+            <td class="left">The wheel must not speed past the target, or the mouse hits the wall in a short maze cell.
+            </td>
+          </tr>
+          <tr>
+            <td class="left">Settling time (2 %)</td>
+            <td>≤ <span id="specTs"></span> s</td>
+            <td class="left">A fast speed loop lets the mouse accelerate and turn in a short distance.</td>
+          </tr>
+          <tr>
+            <td class="left">Steady-state error</td>
+            <td>≤ <span id="specSS"></span> %</td>
+            <td class="left">Two wheels at the same speed mean the mouse drives straight, and distance by encoder stays
+              accurate.</td>
+          </tr>
+          <tr>
+            <td class="left">Damping ratio &zeta;</td>
+            <td>0.6 to 0.8</td>
+            <td class="left">Practical range from the lecture: fast, with small overshoot.</td>
+          </tr>
+          <tr>
+            <td class="left">PWM command</td>
+            <td>0 to 100 %</td>
+            <td class="left">The driver cannot give more than 100 %. If u hits the limit, the controller is not working
+              as designed.</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    
+    <div class="card">
+      <h3>3. Controller Design (PI, digital)</h3>
+      <div class="body">
+        <p>For the plant K/(&tau;s + 1) with a PI controller the closed loop is second order (same formulas as
+          validation check 2 of Homework 2):</p>
+        <div class="eq">&omega;n = &radic;(K&middot;Ki / &tau;) &nbsp;&nbsp; &zeta; = (1 + K&middot;Kp) /
+          (2&radic;(&tau;&middot;K&middot;Ki))</div>
+        <p>We choose &zeta; and &omega;n, then solve for the gains:</p>
+        <div class="eq">Ki = &omega;n&sup2; &middot; &tau; / K &nbsp;&nbsp; Kp = (2&zeta;&omega;n&tau; &minus; 1) / K
+        </div>
+
+        <div class="controls">
+          <div><b>&zeta;:</b> <span id="zetaVal"></span><input type="range" id="zeta" min="0.3" max="1.2" step="0.05">
+          </div>
+          <div><b>&omega;n (rad/s):</b> <span id="wnVal"></span><input type="range" id="wn" min="3" max="40" step="0.5">
+          </div>
+          <div><b>Sampling time Ts (s):</b> <span id="TsVal"></span><input type="range" id="Ts" min="0.005" max="0.1"
+              step="0.005"></div>
+          <div><b>Setpoint r (rad/s):</b> <span id="rVal"></span><input type="range" id="r" min="1" max="50" step="1">
+          </div>
+          <div><b>K</b> (rad/s per %): <input type="number" id="K" step="0.0001"></div>
+          <div><b>&tau;</b> (s): <input type="number" id="tau" step="0.001"></div>
+          <div><label><input type="checkbox" id="aw"> Anti-windup</label></div>
+        </div>
+        <p class="note">After the PWM step test, type the measured K and &tau; in the two boxes. The gains and the whole
+          page update.</p>
+
+        <table style="margin-top:10px">
+          <tr>
+            <th>Kp</th>
+            <th>Ki</th>
+            <th>&zeta; (check)</th>
+            <th>&omega;n (check)</th>
+            <th>Design status</th>
+          </tr>
+          <tr>
+            <td id="gKp"></td>
+            <td id="gKi"></td>
+            <td id="gZ"></td>
+            <td id="gW"></td>
+            <td id="gStatus"></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Simulated Response (digital PID, RK4 plant)</h3>
+      <div class="body">
+        <table>
+          <tr>
+            <th>Rise time</th>
+            <th>Overshoot</th>
+            <th>Settling time</th>
+            <th>Steady-state error</th>
+            <th>Peak u</th>
+            <th>Lowest u</th>
+          </tr>
+          <tr>
+            <td id="mRise"></td>
+            <td id="mOS"></td>
+            <td id="mTs"></td>
+            <td id="mSS"></td>
+            <td id="mUmax"></td>
+            <td id="mUmin"></td>
+          </tr>
+        </table>
+        <table style="margin-top:10px">
+          <tr>
+            <th>Overshoot</th>
+            <th>Settling time</th>
+            <th>Steady-state error</th>
+            <th>PWM within 0–100 %</th>
+            <th>&zeta; in 0.6–0.8</th>
+            <th>Overall</th>
+          </tr>
+          <tr>
+            <td id="pOS"></td>
+            <td id="pTs"></td>
+            <td id="pSS"></td>
+            <td id="pU"></td>
+            <td id="pZ"></td>
+            <td id="pAll"></td>
+          </tr>
+        </table>
+        <div class="grid2" style="margin-top:12px">
+          <div class="card">
+            <h4>Speed &omega; vs Setpoint</h4>
+            <div id="yPlot" class="plot"></div>
+          </div>
+          <div class="card">
+            <h4>PWM command u (%)</h4>
+            <div id="uPlot" class="plot"></div>
+          </div>
+        </div>
+        <p class="note">The simulation uses the same digital PID formula as the Arduino code: u[k] = Kp&middot;e[k] +
+          Ki&middot;Ts&middot;&Sigma;e[j] + Kd&middot;(e[k] &minus; e[k&minus;1])/Ts, with Kd = 0. Between samples u is
+          held constant and the plant is solved with RK4.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Generated Arduino Code (ESP32)</h3>
+      <div class="body">
+        <div class="codebar">
+          <span class="note" style="margin:0">Uses the final gains above. Pins and encoder counts per turn are
+            placeholders to fill in.</span>
+          <button id="copyBtn" onclick="copyCode()">Copy code</button>
+        </div>
+        <pre id="code"></pre>
+      </div>
+    </div>
+
+  </div>
+  <script>
+    //CORE-START
+    var DT = 0.001   // RK4 step for the plant (s)
+
+    // Run the closed loop: digital PID every Ts, plant simulated with RK4 between samples
+    function run(p, Ts) {
+      var sub = Math.max(1, Math.round(Ts / DT))
+      var dt = Ts / sub
+      var N = Math.round(p.T / Ts)
+      var y = 0, integral = 0, ePrev = 0, diverged = false
+      var tF = [0], yF = [0]          // fine points (every RK4 step)
+      var tS = [], uS = [], yS = []   // one point per sample
+
+      function f(z, u) { return (p.K * u - z) / p.tau }
+
+      for (var k = 0; k < N; k++) {
+        var e = p.r - y
+        var integralNew = integral + e * Ts
+        var u = p.Kp * e + p.Ki * integralNew + p.Kd * (e - ePrev) / Ts
+        var uSat = u
+        if (p.limit) uSat = Math.min(Math.max(u, Math.min(p.umin, p.umax)), Math.max(p.umin, p.umax))
+        var saturated = (uSat !== u)
+        if (!(p.aw && saturated)) integral = integralNew
+        ePrev = e
+        tS.push(k * Ts); uS.push(uSat); yS.push(y)
+
+        for (var s = 0; s < sub; s++) {
+          var k1 = f(y, uSat), k2 = f(y + dt * k1 / 2, uSat)
+          var k3 = f(y + dt * k2 / 2, uSat), k4 = f(y + dt * k3, uSat)
+          y += dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+          tF.push((k * sub + s + 1) * dt); yF.push(y)
+        }
+        if (!isFinite(y) || Math.abs(y) > 1e9) { diverged = true; break }
+      }
+      tS.push(N * Ts); uS.push(uS[uS.length - 1])   // close the last stair
+      return { tF: tF, yF: yF, tS: tS, uS: uS, yS: yS, diverged: diverged, Ts: Ts }
+    }
+
+    // Metrics: rise time (10-90%), overshoot, settling time (2%), steady-state error, IAE
+    function metrics(sim, p) {
+      var y = sim.yF, t = sim.tF, n = y.length
+      var out = { rise: NaN, overshoot: NaN, settling: NaN, sse: NaN, iae: NaN, status: "settled" }
+
+      // IAE: integral of |r - y| dt
+      var iae = 0
+      for (var i = 1; i < n; i++) iae += Math.abs(p.r - y[i]) * (t[i] - t[i - 1])
+      out.iae = iae
+
+      var maxAbs = 0
+      for (i = 0; i < n; i++) if (Math.abs(y[i]) > maxAbs) maxAbs = Math.abs(y[i])
+      if (sim.diverged || maxAbs > 100 * Math.max(Math.abs(p.r), 1e-6)) { out.status = "unstable"; return out }
+
+      // final value = average of the last 5% of the run
+      var from = Math.floor(n * 0.95), sum = 0
+      for (i = from; i < n; i++) sum += y[i]
+      var final = sum / (n - from)
+      out.sse = Math.abs(p.r - final)
+      if (Math.abs(final) < 1e-9) { out.status = "no response"; return out }
+
+      var t10 = null, t90 = null, peak = 0, lastOut = -1
+      for (i = 0; i < n; i++) {
+        var s = y[i] / final
+        if (t10 === null && s >= 0.1) t10 = t[i]
+        if (t90 === null && s >= 0.9) t90 = t[i]
+        if (s > peak) peak = s
+        if (Math.abs(s - 1) > 0.02) lastOut = i
+      }
+      out.overshoot = Math.max(peak - 1, 0) * 100
+      if (t10 !== null && t90 !== null) out.rise = t90 - t10
+      if (lastOut >= 0 && t[lastOut] > 0.9 * p.T) { out.status = "oscillating"; return out }
+      out.settling = lastOut < 0 ? 0 : t[lastOut + 1]
+      return out
+    }
+    //CORE-END
+
+    // my design settings (change these here) 
+    var S = {
+      K: 0.5236,     // rad/s per % PWM = (500 RPM * 2*pi/60)/100. Source: seller's listing (no-load, 6 V)
+      tau: 0.1,      // s. ASSUMED. Replace with the measured value after the PWM step test
+      umin: 0, umax: 100,       // PWM limit in %
+      r: 20,         // setpoint in rad/s
+      Ts: 0.01,      // sampling time in s
+      zeta: 0.7, wn: 15,        // design choice
+      aw: true,
+      T: 3,          // simulation time in s
+      spec: { overshoot: 10, settling: 0.5, sse: 1 },
+      wheelR: 0.0225 // wheel radius in m (45 mm diameter)
+    }
+
+    function num(v, d) { return Number.isFinite(v) ? v.toFixed(d) : "–" }
+    function el(id) { return document.getElementById(id) }
+
+    // PI design from zeta and wn (formulas in Part 3)
+    function design(K, tau, zeta, wn) {
+      return { Ki: wn * wn * tau / K, Kp: (2 * zeta * wn * tau - 1) / K }
+    }
+    // zeta and wn of the closed loop for given gains (check)
+    function checkZW(K, tau, Kp, Ki) {
+      return { wn: Math.sqrt(K * Ki / tau), zeta: (1 + K * Kp) / (2 * Math.sqrt(tau * K * Ki)) }
+    }
+
+    function plantParams(K, tau, g) {
+      return {
+        K: K, tau: tau, Kp: g.Kp, Ki: g.Ki, Kd: 0, r: S.r, T: S.T,
+        limit: true, umin: S.umin, umax: S.umax, aw: S.aw
+      }
+    }
+
+    // Analyse one case: returns metrics, free (unlimited) u range, zeta
+    function analyse(K, tau, g, Ts) {
+      var p = plantParams(K, tau, g)
+      var sim = run(p, Ts)
+      var m = metrics(sim, p)
+      var free = run(Object.assign({}, p, { limit: false }), Ts)
+      var uHi = Math.max.apply(null, free.uS.slice(0, -1)), uLo = Math.min.apply(null, free.uS.slice(0, -1))
+      var zw = checkZW(K, tau, g.Kp, g.Ki)
+      return { sim: sim, m: m, uHi: uHi, uLo: uLo, zw: zw }
+    }
+
+    function specOK(a) {
+      var m = a.m
+      var os = Number.isFinite(m.overshoot) && m.overshoot <= S.spec.overshoot
+      var ts = m.status == "settled" && m.settling <= S.spec.settling
+      var ss = Number.isFinite(m.sse) && (m.sse / Math.abs(S.r) * 100) <= S.spec.sse
+      var u = a.uHi <= S.umax && a.uLo >= S.umin
+      return { os: os, ts: ts, ss: ss, u: u, all: os && ts && ss && u }
+    }
+    function yn(ok) { return "<span class='" + (ok ? "pass" : "fail") + "'>" + (ok ? "PASS" : "FAIL") + "</span>" }
+
+    // Arduino code 
+    function cf(x) { var s = String(+Number(x).toFixed(4)); if (s.indexOf(".") < 0) s += ".0"; return s + "f" }
+
+    function makeCode(g) {
+      var tsMs = Math.round(S.Ts * 1000)
+      var L = []
+      L.push("// Speed loop for ONE wheel (ESP32 + DRV8833). Made by the My System page.")
+      L.push("// u[k] = Kp*e[k] + Ki*Ts*sum(e)      (Kd = 0, PI controller)")
+      L.push("// Plant used for the design: K = " + S.K + " rad/s per % PWM, tau = " + S.tau + " s")
+      L.push("")
+      L.push("const float Kp = " + cf(g.Kp) + ";")
+      L.push("const float Ki = " + cf(g.Ki) + ";")
+      L.push("const unsigned long TS_MS = " + tsMs + ";   // sampling time in ms")
+      L.push("const float Ts = TS_MS / 1000.0f;")
+      L.push("const float U_MAX = " + cf(S.umax) + ";     // % PWM")
+      L.push("const float U_MIN = " + cf(S.umin) + ";")
+      L.push("")
+      L.push("// TODO: fill in your pins and your encoder numbers")
+      L.push("const int PIN_IN1 = 25;          // DRV8833 IN1 (PWM)")
+      L.push("const int PIN_IN2 = 26;          // DRV8833 IN2 (kept LOW for forward)")
+      L.push("const int PIN_ENC_A = 34;")
+      L.push("const int PIN_ENC_B = 35;")
+      // FIXED: the interrupt below is only on channel A (CHANGE = 2 edges), so we get 2 counts per pulse, not 4
+      L.push("const float COUNTS_PER_REV = 7 * 2 * 1;   // 7 PPR x 2 edges (channel A only) x GEAR RATIO (put the ratio instead of 1)")
+      L.push("const int PWM_FREQ = 20000;      // Hz")
+      L.push("const int PWM_BITS = 10;         // duty 0..1023")
+      L.push("")
+      L.push("float setpoint = " + cf(S.r) + ";      // rad/s")
+      L.push("float integral = 0.0f;                 // = Ts * sum of errors")
+      L.push("volatile long encoderCount = 0;")
+      L.push("long lastCount = 0;")
+      L.push("unsigned long lastTick = 0;")
+      L.push("")
+      L.push("void IRAM_ATTR onEncoderA() {")
+      L.push("  // TODO: check the direction on your wheel (swap + and - if the speed is negative)")
+      L.push("  if (digitalRead(PIN_ENC_A) == digitalRead(PIN_ENC_B)) encoderCount++; else encoderCount--;")
+      L.push("}")
+      L.push("")
+      L.push("void writePWM(float u) {   // u in % (0..100)")
+      L.push("  int duty = (int)(u * ((1 << PWM_BITS) - 1) / 100.0f);")
+      L.push("  ledcWrite(PIN_IN1, duty);   // Arduino-ESP32 core 3.x. On core 2.x use ledcSetup + ledcAttachPin")
+      L.push("  ledcWrite(PIN_IN2, 0);")
+      L.push("}")
+      L.push("")
+      L.push("void setup() {")
+      L.push("  Serial.begin(115200);")
+      L.push("  pinMode(PIN_ENC_A, INPUT);")
+      L.push("  pinMode(PIN_ENC_B, INPUT);")
+      L.push("  attachInterrupt(digitalPinToInterrupt(PIN_ENC_A), onEncoderA, CHANGE);")
+      L.push("  ledcAttach(PIN_IN1, PWM_FREQ, PWM_BITS);")
+      L.push("  ledcAttach(PIN_IN2, PWM_FREQ, PWM_BITS);")
+      L.push("  lastTick = millis();")
+      L.push("}")
+      L.push("")
+      L.push("void loop() {")
+      L.push("  unsigned long now = millis();")
+      L.push("  if (now - lastTick < TS_MS) return;   // wait for the next sample")
+      L.push("  lastTick += TS_MS;")
+      L.push("")
+      L.push("  // speed in rad/s from the counts in this sample")
+      L.push("  noInterrupts(); long c = encoderCount; interrupts();")
+      L.push("  float y = (c - lastCount) * 2.0f * PI / (COUNTS_PER_REV * Ts);")
+      L.push("  lastCount = c;")
+      L.push("")
+      L.push("  float e = setpoint - y;")
+      L.push("  float integralNew = integral + e * Ts;")
+      L.push("  float u = Kp * e + Ki * integralNew;")
+      L.push("  float uSat = constrain(u, U_MIN, U_MAX);")
+      if (S.aw) {
+        L.push("  if (uSat == u) integral = integralNew;   // anti-windup: do not integrate while saturated")
+      } else {
+        L.push("  integral = integralNew;                  // anti-windup is OFF")
+      }
+      L.push("")
+      L.push("  writePWM(uSat);")
+      L.push("}")
+      return L.join("\n")
+    }
+
+    function copyCode() {
+      var text = el("code").textContent, btn = el("copyBtn")
+      function done() { btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = "Copy code" }, 1500) }
+      function fallback() {
+        var ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select()
+        try { document.execCommand("copy"); done() } catch (err) { btn.textContent = "Select and copy by hand" }
+        document.body.removeChild(ta)
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback)
+      else fallback()
+    }
+
+    // show everything 
+    function update() {
+      var g = design(S.K, S.tau, S.zeta, S.wn)
+      var a = analyse(S.K, S.tau, g, S.Ts)
+      var m = a.m, ok = specOK(a)
+      var zOK = a.zw.zeta >= 0.6 - 1e-9 && a.zw.zeta <= 0.8 + 1e-9
+
+      el("kShow").textContent = S.K
+      el("tauShow").textContent = S.tau
+      el("rShow").textContent = S.r
+      el("vTop").textContent = num(S.K * 100 * S.wheelR, 3)
+      el("vSet").textContent = num(S.r * S.wheelR, 3)
+      el("specOS").textContent = S.spec.overshoot
+      el("specTs").textContent = S.spec.settling
+      el("specSS").textContent = S.spec.sse
+
+      el("zetaVal").textContent = S.zeta
+      el("wnVal").textContent = S.wn
+      el("TsVal").textContent = S.Ts.toFixed(3)
+      el("rVal").textContent = S.r
+
+      el("gKp").textContent = num(g.Kp, 3)
+      el("gKi").textContent = num(g.Ki, 3)
+      el("gZ").textContent = num(a.zw.zeta, 3)
+      el("gW").textContent = num(a.zw.wn, 2) + " rad/s"
+      el("gStatus").innerHTML = g.Kp < 0
+        ? "<span class='fail'>Kp &lt; 0: choose a larger &omega;n or &zeta;</span>"
+        : "<span class='pass'>gains valid</span>"
+
+      el("mRise").textContent = Number.isFinite(m.rise) ? num(m.rise, 3) + " s" : "–"
+      el("mOS").textContent = Number.isFinite(m.overshoot) ? num(m.overshoot, 1) + " %" : "–"
+      el("mTs").textContent = m.status == "settled" ? num(m.settling, 3) + " s" : m.status
+      el("mSS").textContent = Number.isFinite(m.sse) ? num(m.sse / Math.abs(S.r) * 100, 3) + " %" : "–"
+      el("mUmax").textContent = num(a.uHi, 1) + " %"
+      el("mUmin").textContent = num(a.uLo, 1) + " %"
+
+      el("pOS").innerHTML = yn(ok.os)
+      el("pTs").innerHTML = yn(ok.ts)
+      el("pSS").innerHTML = yn(ok.ss)
+      el("pU").innerHTML = yn(ok.u)
+      el("pZ").innerHTML = yn(zOK)
+      el("pAll").innerHTML = yn(ok.all && zOK)
+
+      plot(a)
+      el("code").textContent = makeCode(g)
+    }
+
+    function plot(a) {
+      var sim = a.sim
+      var every = Math.max(1, Math.ceil(sim.tF.length / 1500)), tt = [], yy = []
+      for (var i = 0; i < sim.tF.length; i += every) { tt.push(sim.tF[i]); yy.push(sim.yF[i]) }
+      var opt = { responsive: true, displayModeBar: false }
+      var lay = { margin: { l: 50, r: 10, t: 10, b: 40 }, xaxis: { title: "Time (s)" }, legend: { orientation: "h", y: -0.3 } }
+      Plotly.react("yPlot", [
+        { x: tt, y: yy, name: "Speed", mode: "lines" },
+        { x: [0, S.T], y: [S.r, S.r], name: "Setpoint", mode: "lines", line: { dash: "dash" } }
+      ], Object.assign({}, lay, { yaxis: { title: "rad/s" } }), opt)
+      Plotly.react("uPlot", [
+        { x: sim.tS, y: sim.uS, name: "u", mode: "lines", line: { shape: "hv" } },
+        { x: [0, S.T], y: [S.umax, S.umax], name: "limit", mode: "lines", line: { dash: "dash", color: "#c00" } },
+        { x: [0, S.T], y: [S.umin, S.umin], name: "limit", mode: "lines", line: { dash: "dash", color: "#c00" }, showlegend: false }
+      ], Object.assign({}, lay, { yaxis: { title: "% PWM" } }), opt)
+    }
+
+    // controls 
+    function bind(id, key) {
+      el(id).value = S[key]
+      el(id).oninput = function () {
+        var v = Number(this.value)
+        if (!Number.isFinite(v) || ((id == "K" || id == "tau") && v <= 0)) return
+        S[key] = v
+        update()
+      }
+    }
+    bind("zeta", "zeta"); bind("wn", "wn"); bind("Ts", "Ts"); bind("r", "r"); bind("K", "K"); bind("tau", "tau")
+    el("aw").checked = S.aw
+    el("aw").onchange = function () { S.aw = this.checked; update() }
+
     update()
-  }
-}
-bind("zeta", "zeta"); bind("wn", "wn"); bind("Ts", "Ts"); bind("r", "r"); bind("K", "K"); bind("tau", "tau")
-el("aw").checked = S.aw
-el("aw").onchange = function(){ S.aw = this.checked; update() }
-
-update()
-</script>
+  </script>
 </body>
+
 </html>
