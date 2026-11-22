@@ -93,6 +93,31 @@ The PID Playground lets users choose a first- or second-order plant and change t
 | PI, Kp = 9, Ki = 5: steady-state error | 0% | 0.000% |
 <img width="1720" height="932" alt="image" src="https://github.com/user-attachments/assets/c5d6b498-2e75-4405-93f9-0a1d23b8fd6f" />
 
+### P3 – Digital PID
+
+The Digital PID module lets users explore how a digital PID controller behaves with different PID gains and sampling times, including the effects of saturation and anti-windup on the closed-loop response.
+
+**Simulation:** The controller is implemented in discrete time, updating the control signal at each sampling instant using the digital PID equation. The plant is simulated using RK4 between controller updates to observe the system response.
+
+**AI usage:** I used an AI assistant to help me understand the requirements and the concepts behind the implementation, guide me through implementing the simulation and controller functionality.
+
+**What the page shows**
+- Closed-loop simulation of a plant controlled by a digital PID controller
+- PID gain inputs (Kp, Ki, Kd)
+- Adjustable sampling time (Ts)
+- Output y and setpoint r plot
+- Stair-step control signal u plot
+- Control signal saturation limits
+- Anti-windup ON/OFF functionality
+- Performance metrics, including IAE, steady-state error, rise time, overshoot, and settling time
+- Sampling time experiments to compare the controller response
+- Arduino code generation based on the current PID gains
+- Predict & Check validation
+- Mobile-friendly layout
+
+**Predict & Check:** An interactive quiz that lets users predict how the closed-loop system will behave under different conditions, including changes in sampling time, anti-windup, and controller behavior. Users select their predictions and check their answers against the simulation results.
+
+<img src="images/predict-check.png" width="800">
 
  ### P4 – tuning challenge
 Simulates a hidden random first-order plant and allows the user to tune the PID controller by adjusting Kp, Ki, and Kd.
