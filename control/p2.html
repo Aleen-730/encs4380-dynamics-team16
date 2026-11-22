@@ -211,6 +211,14 @@ button {
         value="0"
     >
     <span id="kdValue">0</span>
+                <hr>
+
+<h3>My Motor</h3>
+<p>Load the parameters of my DC motor into the simulation.</p>
+
+<button id="loadMotorButton">Load My Motor</button>
+
+<p id="myMotorNote"></p>
                 </div>
         </div>
 
@@ -392,14 +400,27 @@ button {
 </div>
 
     <script>
-        // Plant parameters
-        const K = 1;
-        const tau = 1;
+      // Plant parameters
+let K = 1;
+let tau = 1;
 
-        // Simulation parameters
-        const setpoint = 1;
-        const dt = 0.001;
-        const simulationTime = 5;
+// Simulation parameters
+let setpoint = 1;
+let dt = 0.001;
+const simulationTime = 5;
+
+// Motor parameters
+const MY_MOTOR = {
+    K: 0.5236,  // rad/s per 1% PWM
+    tau: 0.1,   // s (assumed, not measured)
+    r: 20,      // setpoint in rad/s
+    Ts: 0.01,   // sampling time in s
+    umin: 0,    // minimum PWM (%)
+    umax: 100   // maximum PWM (%)
+};
+
+// Motor mode
+let motorLoaded = false;
 
         const tauSensor = document.getElementById("tauSensor");
         const tauSensorValue = document.getElementById("tauSensorValue");
@@ -558,15 +579,30 @@ function checkAnswers() {
                 // to calculate the error
                 let error = setpoint - ys;
 
-                // Integral term
-                integral += error * dt;
+               // Save previous integral value
+let previousIntegral = integral;
 
+// Integral term
+integral += error * dt;
                 //derivative term
                 let derivative = -(ys - previousYs) / dt;
 
                 // PID control signal
-                let u = kp.value * error + ki.value * integral + kd.value * derivative;
+let u = kp.value * error + ki.value * integral + kd.value * derivative;
+                let uBeforeSaturation = u;
 
+// Apply PWM limits only when My Motor is loaded
+if (motorLoaded) {
+    u = Math.max(MY_MOTOR.umin, Math.min(MY_MOTOR.umax, u));
+
+    // Anti-Windup
+    if (u !== uBeforeSaturation) {
+        if ((uBeforeSaturation > MY_MOTOR.umax && error > 0) ||
+            (uBeforeSaturation < MY_MOTOR.umin && error < 0)) {
+            integral = previousIntegral;
+        }
+    }
+}
                 //save current error
                 previousYs = ys;
 
@@ -680,7 +716,11 @@ function runValidation() {
 
     for (let t = 0; t <= duration; t += dt) {
         let error = 1 - y;
-        integral += error * dt;
+       // Save previous integral value
+let previousIntegral = integral;
+
+// Integral term
+integral += error * dt;
 
         let u = kp * error + ki * integral;
 
@@ -747,6 +787,26 @@ for (let i = 0; i < outputData.length; i++) {
 document.getElementById("checkAnswers").addEventListener("click", checkAnswers);
         const prediction = document.getElementById("prediction");
 const predictionFeedback = document.getElementById("predictionFeedback");
+        function showMyMotorNote() {
+    document.getElementById("myMotorNote").innerHTML =
+        "Units: u in % PWM, y and r in rad/s.<br>" +
+        "K = " + MY_MOTOR.K + " rad/s per % PWM (seller's listing, no-load).<br>" +
+        "&tau; = " + MY_MOTOR.tau + " s (assumed, not measured yet).";
+}
+
+function loadMyMotor() {
+    K = MY_MOTOR.K;
+    tau = MY_MOTOR.tau;
+    setpoint = MY_MOTOR.r;
+    dt = MY_MOTOR.Ts;
+
+    motorLoaded = true;
+
+    showMyMotorNote();
+    runSimulation();
+}
+        document.getElementById("loadMotorButton")
+    .addEventListener("click", loadMyMotor);
 
         
     </script>
