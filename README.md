@@ -97,6 +97,9 @@ The PID Playground lets users choose a first- or second-order plant and change t
 ### P2 ###
 The module explains the effect of sensor time constant (τs) on the system response, including the difference between the true output (y) and measured output (ys), and how sensor delay affects the PID feedback loop. AI tools were also used to clarify concepts that were not fully understood and to improve the screen layout and formatting, making the module easier to understand and use.
 <img width="1310" height="693" alt="image" src="https://github.com/user-attachments/assets/f2728c1a-5cf1-40c8-9a02-90b56a300bfc" />
+<img width="1323" height="341" alt="image" src="https://github.com/user-attachments/assets/c7b52ff7-a308-40df-a541-2103df0969d5" />
+
+<img width="315" height="450" alt="image" src="https://github.com/user-attachments/assets/da103fe7-be5f-44b7-b41e-1f2f7d0da10e" />
 
 <img width="1302" height="765" alt="image" src="https://github.com/user-attachments/assets/e6db63c6-24bf-4a21-8897-c4abb1ea58a9" />
 
