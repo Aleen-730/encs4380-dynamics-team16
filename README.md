@@ -67,11 +67,13 @@ I worked on the implementation of Module 4, including the sensor guessing interf
 
 ### P1 – PID Playground
 
-**Simulation Method:**
-- **First-order plant:** Used Explicit Euler, as explained in the State Space Modeling lecture.
-- **Second-order plant:** Initially tried Explicit Euler, but it gave inaccurate results for some slider values.
-- Tried reducing the time step (`dt`) to improve accuracy. The results improved in some cases, but the method still failed in others.
-- Therefore, switched to Semi-implicit Euler for the second-order plant, updating the velocity before the output.
+The page lets users choose a first- or second-order plant and change the PID gains. It shows the output, control signal, block diagram, and live metrics, along with validation checks and Predict, then check questions.
+
+Simulation: I initially used Euler, but it gave inaccurate results for some oscillating responses. I switched to RK4 using the example from the State-Space Modeling notes (Sections 6–7).
+
+AI usage: I used Claude to help with layout improvements and reviewing and debugging parts of the simulation.
+<img width="1720" height="932" alt="image" src="https://github.com/user-attachments/assets/c5d6b498-2e75-4405-93f9-0a1d23b8fd6f" />
+
 
  ### P4 – tuning challenge
  Simulates a hidden random first-order plant, while allowing the user to tune Kp, Ki, and Kd.
