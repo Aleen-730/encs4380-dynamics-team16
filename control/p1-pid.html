@@ -107,7 +107,9 @@
       <div class="q"><label><b>u<sub>max</sub>:</b></label><input type="number" id="umax" step="any" value="10"></div>
       <div class="q"><label><b>u<sub>min</sub>:</b></label><input type="number" id="umin" step="any" value="-10"></div>
 
-      <p><label><input type="checkbox" id="limitU"> Limit u</label></p>
+            <p><label><input type="checkbox" id="limitU"> Limit u</label></p>
+      <button onclick="loadMyMotor()">Load my motor</button>
+      <p id="myMotorNote" class="note"></p>
      </div></div>
     </div>
 
@@ -462,8 +464,7 @@ function showQuestions(){
   })
   document.getElementById("questions").innerHTML = html
 }
-function setUp(i){
-  Object.assign(parameters, start, questions[i].setup)
+function syncControls(){
   sliders.forEach(function(id){
     document.getElementById(id).value = parameters[id]
     showLabel(id)
@@ -473,6 +474,11 @@ function setUp(i){
   document.getElementById("umin").value = parameters.umin
   document.getElementById("limitU").checked = parameters.limitU
   showPlantControls()
+}
+
+function setUp(i){
+  Object.assign(parameters, start, questions[i].setup)
+  syncControls()
   update()
 }
 
@@ -552,12 +558,43 @@ function showValidation(){
     html += `<tr><td>${r[0]}</td><td>${r[1]}${r[3]}</td><td>${r[2].toFixed(3)}${r[3]}</td>
       <td class="${pass ? 'pass' : 'fail'}">${pass ? 'PASS' : 'FAIL'}</td></tr>`
   })
-  document.getElementById("validation").innerHTML = html
+
+    document.getElementById("validation").innerHTML = html
 }
+
+// My motor (JGA12-N20 with encoder, 500 RPM, 6 V). Change after the PWM step test.
+var MY_MOTOR = {
+  plant: "first",
+  K: 0.5236,     // rad/s per 1% of 6 V = (500 RPM * 2*pi/60) / 100 %. Source: seller's listing, no-load
+  tau: 0.1,      // s. ASSUMED value, replace it with the measured value
+  r: 5,          // setpoint in rad/s (the slider goes up to 5)
+  T: 3,          // s, simulation time
+  umin: 0,       // u limit in % of 6 V
+  umax: 100,     // 100% of 6 V = 67% PWM duty on our 9 V battery
+  limitU: true
+}
+
+// Show where the motor numbers come from
+function showMyMotorNote(){
+  document.getElementById("myMotorNote").innerHTML =
+    "Units: u in % of the motor's 6 V, y and r in rad/s.<br>" +
+    "K = " + MY_MOTOR.K + " rad/s per % (seller's listing, no-load).<br>" +
+    "τ = " + MY_MOTOR.tau + " s (assumed, not measured yet)."
+}
+
+// Load the motor into the sliders. The PID gains are not changed.
+function loadMyMotor(){
+  Object.assign(parameters, MY_MOTOR)
+  syncControls()
+  update()
+}
+
 showQuestions()
+showMyMotorNote()
 showValidation()
 update()
 </script>
+
 
 </body>
 </html>
