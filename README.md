@@ -67,11 +67,30 @@ I worked on the implementation of Module 4, including the sensor guessing interf
 
 ### P1 – PID Playground
 
-The page lets users choose a first- or second-order plant and change the PID gains. It shows the output, control signal, block diagram, and live metrics, along with validation checks and Predict, then check questions.
+The PID Playground lets users choose a first- or second-order plant and change the PID gains to see how the system responds.
 
-Simulation: I initially used Euler, but it gave inaccurate results for some oscillating responses. I switched to RK4 using the example from the State-Space Modeling notes (Sections 6–7).
+**Simulation:** I initially used Euler, but it gave inaccurate results for some oscillating responses. I switched to RK4 using the example from the State-Space Modeling notes (Sections 6–7).
 
-AI usage: I used Claude to help with layout improvements and reviewing and debugging parts of the simulation.
+**AI usage:** I used Claude to help with layout improvements and reviewing and debugging parts of the simulation.
+
+**What the page shows**
+- Closed-loop block diagram
+- Output y and setpoint r plot
+- Control signal u plot, with optional limit lines
+- Rise time (10%–90%), overshoot, settling time (±2%) and steady-state error
+- Validation checks with PASS/FAIL
+- Predict, then check questions
+- Mobile-friendly layout
+
+**Validation checks (all pass)**
+
+| Check | Expected | Simulated |
+|---|---|---|
+| P only, Kp = 9: closed-loop τ | 0.1 s | 0.100 s |
+| P only, Kp = 9: steady-state error | 10% | 10.000% |
+| PI, Kp = Ki = 1: no overshoot (ζ = 1) | 0% | 0.000% |
+| PI, Kp = Ki = 1: time to reach 63.2% (ωn = 1) | 1 s | 1.000 s |
+| PI, Kp = 9, Ki = 5: steady-state error | 0% | 0.000% |
 <img width="1720" height="932" alt="image" src="https://github.com/user-attachments/assets/c5d6b498-2e75-4405-93f9-0a1d23b8fd6f" />
 
 
