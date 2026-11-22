@@ -95,8 +95,21 @@ The PID Playground lets users choose a first- or second-order plant and change t
 
 
  ### P4 – tuning challenge
- Simulates a hidden random first-order plant, while allowing the user to tune Kp, Ki, and Kd.
-Evaluates the PID response based on overshoot, settling time, and steady-state error, then gives a PASS/FAIL score.
+Simulates a hidden random first-order plant and allows the user to tune the PID controller by adjusting Kp, Ki, and Kd.
+
+The user must tune the PID gains without directly seeing the plant parameters and try to satisfy the required performance specifications.
+
+The system evaluates the PID response using:
+
+Overshoot ≤ 10%
+
+Settling time ≤ 2 s
+
+Steady-state error ≤ 1%
+
+The page displays the system response plot and the calculated performance metrics, with a PASS/FAIL result for each requirement.
+
+A New Challenge button generates a new random plant, allowing the user to repeat the tuning challenge with different plant parameters.
 
 <img width="1038" height="749" alt="image" src="https://github.com/user-attachments/assets/e5748bba-4bbf-44b1-9ecb-d51f7387fa09" />
 <img width="1026" height="783" alt="image" src="https://github.com/user-attachments/assets/a957f20e-07a4-4df9-9fa3-8c553fa92d8b" />
