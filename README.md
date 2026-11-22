@@ -6,7 +6,7 @@ Aleen Othman 1231626: Module 1 ,  P1 – PID Playground
 
 Aya Suliman 1231411: Module 2
 
-Mirna Musallam 1230042: Module 3
+Mirna Musallam 1230042: Module 3, P4 – tuning challenge
 
 Heba Madi 1231286: Module 4,  P3 - Digital PID
 
@@ -97,6 +97,10 @@ The PID Playground lets users choose a first- or second-order plant and change t
  ### P4 – tuning challenge
  Simulates a hidden random first-order plant, while allowing the user to tune Kp, Ki, and Kd.
 Evaluates the PID response based on overshoot, settling time, and steady-state error, then gives a PASS/FAIL score.
+
+<img width="1038" height="749" alt="image" src="https://github.com/user-attachments/assets/e5748bba-4bbf-44b1-9ecb-d51f7387fa09" />
+<img width="1026" height="783" alt="image" src="https://github.com/user-attachments/assets/a957f20e-07a4-4df9-9fa3-8c553fa92d8b" />
+
 
 
  
