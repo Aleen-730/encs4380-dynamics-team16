@@ -117,7 +117,7 @@ The Digital PID module lets users explore how a digital PID controller behaves w
 
 **Predict & Check:** An interactive quiz that lets users predict how the closed-loop system will behave under different conditions, including changes in sampling time, anti-windup, and controller behavior. Users select their predictions and check their answers against the simulation results.
 
-<img src="images/predict-check.png" width="800">
+![Predict & Check](images/predict-check.png)
 
  ### P4 – tuning challenge
 Simulates a hidden random first-order plant and allows the user to tune the PID controller by adjusting Kp, Ki, and Kd.
